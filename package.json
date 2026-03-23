@@ -3,15 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "engines": {
-    "node": "18.x || 20.x",
-    "npm": ">=9.0.0"
-  },
   "scripts": {
-    "prebuild": "chmod +x node_modules/.bin/vite 2>/dev/null || true",
     "dev": "vite",
-    "build": "vite build",
-    "vercel-build": "vite build"
+    "build": "npx vite build"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -84,5 +78,11 @@
     "tw-animate-css": "1.3.8",
     "vaul": "1.1.2",
     "vite": "6.3.5"
-  }
+  },
+  "devDependencies": {},
+  "description": "A cutting-edge, modern portfolio website featuring advanced animations, 3D effects, and automatic GitHub integration.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
