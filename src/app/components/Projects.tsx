@@ -8,6 +8,7 @@
  * ✅ Search, Sort, Category filter, Pagination
  * ✅ Spotlight cursor glow, animated counters, marquee strip
  * ✅ Toast notifications, skeleton shimmer
+ * ✅ LATEST UPDATED PROJECTS DISPLAYED FIRST (chronological order)
  */
 
 import {
@@ -602,7 +603,7 @@ export function Projects() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [categories,     setCategories]     = useState<string[]>(['All']);
   const [query,          setQuery]          = useState('');
-  const [sort,           setSort]           = useState<SortKey>('stars');
+  const [sort,           setSort]           = useState<SortKey>('updated'); // CHANGED: Default sort to 'updated'
   const [page,           setPage]           = useState(1);
   const [toast,          setToast]          = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [showSort,       setShowSort]       = useState(false);
@@ -624,11 +625,19 @@ export function Projects() {
     }
     try {
       const repos = await fetchRepos();
-      const byStar = [...repos].sort((a, b) => b.stargazers_count - a.stargazers_count);
+      
+      // Sort by updated_at (latest first) BEFORE processing featured
+      const sortedByDate = [...repos].sort((a, b) => 
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
+      
+      // Featured projects: top 4 by stars, but also show latest ones
+      const byStar = [...sortedByDate].sort((a, b) => b.stargazers_count - a.stargazers_count);
       const featuredIds = new Set(byStar.slice(0, FEATURED_COUNT).map(r => r.id));
+      
       const enriched: Project[] = [];
-      for (let i = 0; i < repos.length; i += 8) {
-        const batch = repos.slice(i, i + 8);
+      for (let i = 0; i < sortedByDate.length; i += 8) {
+        const batch = sortedByDate.slice(i, i + 8);
         const results = await Promise.all(batch.map(async (r): Promise<Project> => ({
           ...r, language: r.language ?? null, topics: r.topics ?? [],
           featured: featuredIds.has(r.id),
@@ -637,11 +646,12 @@ export function Projects() {
         })));
         enriched.push(...results);
       }
-      enriched.sort((a, b) => {
-        if (a.featured && !b.featured) return -1;
-        if (!a.featured && b.featured) return 1;
-        return b.stargazers_count - a.stargazers_count;
-      });
+      
+      // Sort by updated_at (latest first) for the final list
+      enriched.sort((a, b) => 
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
+      
       setCategories(['All', ...Array.from(new Set(enriched.map(p => p.category))).sort()]);
       setProjects(enriched);
       saveCache(enriched);
@@ -688,9 +698,9 @@ export function Projects() {
   const hasMore   = paginated.length < filtered.length;
 
   const SORT_OPTIONS: { key: SortKey; label: string; Icon: React.ElementType }[] = [
+    { key: 'updated', label: 'Latest Updated',  Icon: Clock }, // MOVED TO TOP as default
     { key: 'stars',   label: 'Most Stars',        Icon: Star },
     { key: 'forks',   label: 'Most Forks',        Icon: GitFork },
-    { key: 'updated', label: 'Recently Updated',  Icon: Clock },
     { key: 'name',    label: 'Name A–Z',           Icon: TrendingUp },
   ];
 
@@ -776,7 +786,7 @@ export function Projects() {
 
           <p className="mx-auto max-w-md text-sm leading-relaxed px-4"
             style={{ color: 'rgba(148,163,184,.65)', fontFamily: "'DM Sans', sans-serif" }}>
-            Auto-synced from GitHub · README previews · real-time stars &amp; forks
+            Auto-synced from GitHub · README previews · real-time stars &amp; forks · <span className="text-sky-400">Updated projects first</span>
           </p>
         </motion.div>
 
