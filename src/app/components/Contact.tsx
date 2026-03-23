@@ -1,43 +1,18 @@
 /**
- * Contact.tsx — Final Production Edition
+ * Contact.tsx — Fixed Edition (Web3Forms)
  *
- * ✅ Background image (IMG1.png) — same pattern as About.tsx
- * ✅ EmailJS FULLY WIRED — sends real email to sadunk128@gmail.com
- * ✅ LinkedIn → https://www.linkedin.com/in/shehan-harsha-183532334/
- * ✅ GitHub  → https://github.com/ShehanHarshaKumara
- * ✅ Form validation + character counter + clear-on-success
- * ✅ 4-state send button: idle → sending → success → error
- * ✅ Copy-to-clipboard on email & phone
- * ✅ Google Maps dark embed (exact coordinates)
- * ✅ Animated spotlight cursor glow on every card
- * ✅ Fully mobile responsive
- *
- * ════════════════════════════════════════════════════════════
- *  ONE-TIME EMAILJS SETUP  (free, 200 emails/month)
- * ════════════════════════════════════════════════════════════
- *  1. Go to  https://emailjs.com  → Sign up free
- *  2. Add Service: Email Services → Gmail → connect sadunk128@gmail.com
- *     Copy the  Service ID  → paste into EMAILJS_SERVICE_ID below
- *  3. Email Templates → Create New:
- *       Subject:  New message from {{from_name}}
- *       Body:     Name: {{from_name}}
- *                 Email: {{from_email}}
- *                 Subject: {{subject}}
- *                 Message: {{message}}
- *     Copy the  Template ID  → paste into EMAILJS_TEMPLATE_ID below
- *  4. Account → API Keys → copy Public Key
- *     → paste into EMAILJS_PUBLIC_KEY below
- *  5. Run:  npm install @emailjs/browser
- * ════════════════════════════════════════════════════════════
+ * ✅ Web3Forms replaces EmailJS — no npm install, no complex setup
+ * ✅ Get your free key at https://web3forms.com → enter sadunk128@gmail.com
+ * ✅ Paste key into WEB3FORMS_ACCESS_KEY below — done!
+ * ✅ All original UI preserved
  */
 
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import {
-  useState, useRef, useEffect,
+  useState, useRef,
   MouseEvent as ReactMouseEvent,
 } from 'react';
-import emailjs from '@emailjs/browser';
 import {
   Mail, MapPin, Phone, Send, MessageSquare,
   Loader2, CheckCircle2, AlertCircle, Github,
@@ -49,11 +24,11 @@ import {
 const contactBg = new URL('../../assets/images/IMG1.png', import.meta.url).href;
 
 // ════════════════════════════════════════════
-//  🔑 PASTE YOUR EMAILJS KEYS HERE
+//  🔑 PASTE YOUR WEB3FORMS KEY HERE
+//  Get it free at https://web3forms.com
+//  Enter sadunk128@gmail.com → Create Access Key
 // ════════════════════════════════════════════
-const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';    // e.g. 'service_abc123'
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';   // e.g. 'template_xyz789'
-const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';    // e.g. 'AbCdEfGhIjKlMn'
+const WEB3FORMS_ACCESS_KEY = '83fe5bfc-3792-43fe-9cb2-85a6c26a47b7';
 // ════════════════════════════════════════════
 
 const CONTACT_EMAIL     = 'sadunk128@gmail.com';
@@ -186,7 +161,6 @@ function Field({
 export function Contact() {
   const { ref, inView } = useInView({ threshold: 0.04, triggerOnce: true });
   const sectionRef = useRef<HTMLElement>(null);
-  const formRef    = useRef<HTMLFormElement>(null);
 
   const [form, setForm]     = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -197,11 +171,6 @@ export function Contact() {
   // Parallax on background image
   const { scrollYProgress } = useScroll({ target: sectionRef });
   const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '15%']);
-
-  // Initialise EmailJS once
-  useEffect(() => {
-    emailjs.init(EMAILJS_PUBLIC_KEY);
-  }, []);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -220,30 +189,47 @@ export function Contact() {
     if (errors[name]) setErrors(er => { const c = { ...er }; delete c[name]; return c; });
   };
 
+  // ── FIXED: Web3Forms submit — no npm install needed ──
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
+
+
     setStatus('sending');
+
     try {
-      await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        {
-          from_name:  form.name,
-          from_email: form.email,
-          subject:    form.subject,
-          message:    form.message,
-          to_email:   CONTACT_EMAIL,
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
-        EMAILJS_PUBLIC_KEY,
-      );
-      setStatus('success');
-      setForm({ name: '', email: '', subject: '', message: '' });
-      setTimeout(() => setStatus('idle'), 6000);
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          name:       form.name,
+          email:      form.email,
+          subject:    `[Portfolio Contact] ${form.subject}`,
+          message:    form.message,
+          // Optional: keeps spam bots out
+          botcheck:   '',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setStatus('success');
+        setForm({ name: '', email: '', subject: '', message: '' });
+        setTimeout(() => setStatus('idle'), 6000);
+      } else {
+        console.error('Web3Forms error:', data);
+        setStatus('error');
+        setTimeout(() => setStatus('idle'), 4500);
+      }
     } catch (err) {
-      console.error('EmailJS error:', err);
+      console.error('Network error:', err);
       setStatus('error');
       setTimeout(() => setStatus('idle'), 4500);
     }
@@ -308,16 +294,12 @@ export function Contact() {
           BACKGROUND LAYER
       ══════════════════════════════════════════ */}
       <div className="pointer-events-none absolute inset-0 z-0">
-
-        {/* Parallax background image — same pattern as About.tsx */}
         <motion.img
           src={contactBg}
           alt=""
           style={{ y: bgY }}
           className="h-full w-full scale-110 object-cover object-center"
         />
-
-        {/* Dark overlay — deeper than About so form text stays readable */}
         <div
           className="absolute inset-0"
           style={{
@@ -325,8 +307,6 @@ export function Contact() {
               'linear-gradient(135deg,rgba(2,8,23,.94) 0%,rgba(3,12,30,.92) 50%,rgba(2,8,23,.94) 100%)',
           }}
         />
-
-        {/* Subtle noise grain */}
         <div
           className="absolute inset-0 opacity-[0.022]"
           style={{
@@ -335,8 +315,6 @@ export function Contact() {
             backgroundSize: '200px 200px',
           }}
         />
-
-        {/* Grid lines */}
         <div
           className="absolute inset-0 opacity-[0.018]"
           style={{
@@ -345,8 +323,6 @@ export function Contact() {
             backgroundSize: '68px 68px',
           }}
         />
-
-        {/* Ambient orbs */}
         <motion.div
           className="absolute -right-20 top-[4%] h-[520px] w-[520px] rounded-full"
           style={{ background: 'radial-gradient(circle,rgba(34,211,238,.10) 0%,transparent 70%)' }}
@@ -463,7 +439,7 @@ export function Contact() {
                   </div>
                 </div>
 
-                <form ref={formRef} onSubmit={handleSubmit} noValidate>
+                <form onSubmit={handleSubmit} noValidate>
                   {/* Row 1 — name + email */}
                   <div className="grid gap-5 sm:grid-cols-2">
                     <Field
@@ -559,13 +535,22 @@ export function Contact() {
                       )}
                     </AnimatePresence>
 
-                    {/* Setup hint — remove after adding EmailJS keys */}
-                    {EMAILJS_SERVICE_ID === 'YOUR_SERVICE_ID' && (
-                      <p className="mt-3 text-center text-[11px]"
-                        style={{ color: 'rgba(251,191,36,.6)' }}>
-                        ⚠️ Add your EmailJS keys at the top of this file to enable real sending
-                      </p>
-                    )}
+                    {/* Error message */}
+                    <AnimatePresence>
+                      {status === 'error' && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, height: 0 }}
+                          animate={{ opacity: 1, y: 0, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mt-4 rounded-xl px-4 py-3 text-sm text-red-300"
+                          style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)' }}
+                        >
+                          ❌ Something went wrong. Please check your connection and try again.
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+
                   </div>
                 </form>
               </div>
@@ -599,12 +584,10 @@ export function Contact() {
                       backdropFilter: 'blur(20px)',
                     }}
                   >
-                    {/* Top accent line on hover */}
                     <div
                       className="absolute top-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                       style={{ background: `linear-gradient(90deg,transparent,${c.accent},transparent)` }}
                     />
-
                     <div className="flex items-center gap-3.5">
                       <div
                         className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
@@ -662,7 +645,6 @@ export function Contact() {
                   Open <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
-
               <div className="relative" style={{ height: 220 }}>
                 <iframe
                   title="Shehan location"
@@ -695,7 +677,6 @@ export function Contact() {
                 backdropFilter: 'blur(20px)',
               }}
             >
-              {/* Decorative circles */}
               <motion.div
                 className="absolute -top-10 -right-10 h-32 w-32 rounded-full"
                 style={{ background: 'radial-gradient(circle,rgba(99,102,241,.3),transparent)' }}
@@ -706,7 +687,6 @@ export function Contact() {
                 style={{ background: 'radial-gradient(circle,rgba(34,211,238,.22),transparent)' }}
                 animate={{ scale: [1.2, 1, 1.2] }} transition={{ duration: 8, repeat: Infinity }}
               />
-
               <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="relative flex h-2.5 w-2.5">

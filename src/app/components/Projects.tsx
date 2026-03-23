@@ -8,7 +8,7 @@
  * ✅ Search, Sort, Category filter, Pagination
  * ✅ Spotlight cursor glow, animated counters, marquee strip
  * ✅ Toast notifications, skeleton shimmer
- * ✅ LATEST UPDATED PROJECTS DISPLAYED FIRST (chronological order)
+ * ✅ FIXED: Display projects sorted by recently updated first
  */
 
 import {
@@ -603,7 +603,7 @@ export function Projects() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [categories,     setCategories]     = useState<string[]>(['All']);
   const [query,          setQuery]          = useState('');
-  const [sort,           setSort]           = useState<SortKey>('updated'); // CHANGED: Default sort to 'updated'
+  const [sort,           setSort]           = useState<SortKey>('updated'); // Changed default to 'updated'
   const [page,           setPage]           = useState(1);
   const [toast,          setToast]          = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [showSort,       setShowSort]       = useState(false);
@@ -617,27 +617,25 @@ export function Projects() {
     if (!force) {
       const cached = loadCache();
       if (cached?.length) {
-        setProjects(cached);
-        setCategories(['All', ...Array.from(new Set(cached.map(p => p.category))).sort()]);
+        // Sort cached projects by updated date (latest first)
+        const sorted = [...cached].sort((a, b) => 
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+        setProjects(sorted);
+        setCategories(['All', ...Array.from(new Set(sorted.map(p => p.category))).sort()]);
         setLoading(false);
         return;
       }
     }
     try {
       const repos = await fetchRepos();
-      
-      // Sort by updated_at (latest first) BEFORE processing featured
-      const sortedByDate = [...repos].sort((a, b) => 
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-      );
-      
-      // Featured projects: top 4 by stars, but also show latest ones
-      const byStar = [...sortedByDate].sort((a, b) => b.stargazers_count - a.stargazers_count);
+      // repos are already sorted by updated date from API (sort=updated)
+      const byStar = [...repos].sort((a, b) => b.stargazers_count - a.stargazers_count);
       const featuredIds = new Set(byStar.slice(0, FEATURED_COUNT).map(r => r.id));
-      
       const enriched: Project[] = [];
-      for (let i = 0; i < sortedByDate.length; i += 8) {
-        const batch = sortedByDate.slice(i, i + 8);
+      
+      for (let i = 0; i < repos.length; i += 8) {
+        const batch = repos.slice(i, i + 8);
         const results = await Promise.all(batch.map(async (r): Promise<Project> => ({
           ...r, language: r.language ?? null, topics: r.topics ?? [],
           featured: featuredIds.has(r.id),
@@ -647,10 +645,12 @@ export function Projects() {
         enriched.push(...results);
       }
       
-      // Sort by updated_at (latest first) for the final list
-      enriched.sort((a, b) => 
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-      );
+      // Sort: featured first, then by updated date (latest first)
+      enriched.sort((a, b) => {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      });
       
       setCategories(['All', ...Array.from(new Set(enriched.map(p => p.category))).sort()]);
       setProjects(enriched);
@@ -663,8 +663,11 @@ export function Projects() {
         if (raw) {
           const { data } = JSON.parse(raw);
           if (data?.length) {
-            setProjects(data);
-            setCategories(['All', ...Array.from(new Set((data as Project[]).map((p: Project) => p.category))).sort()]);
+            const sorted = [...data].sort((a, b) => 
+              new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+            );
+            setProjects(sorted);
+            setCategories(['All', ...Array.from(new Set(sorted.map((p: Project) => p.category))).sort()]);
           }
         }
       } catch { /**/ }
@@ -685,22 +688,31 @@ export function Projects() {
         p.topics.some(t => t.includes(q))
       );
     }
-    return [...list].sort((a, b) => {
+    
+    // Apply sorting based on user selection
+    const sorted = [...list].sort((a, b) => {
       if (sort === 'stars')   return b.stargazers_count - a.stargazers_count;
       if (sort === 'forks')   return b.forks_count - a.forks_count;
       if (sort === 'updated') return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
       if (sort === 'name')    return a.name.localeCompare(b.name);
       return 0;
     });
+    
+    return sorted;
   }, [projects, activeCategory, query, sort]);
 
-  const paginated = filtered.slice(0, page * PAGE_SIZE);
-  const hasMore   = paginated.length < filtered.length;
+  // Separate latest projects (first 4 after filtering) and remaining projects
+  const latestProjects = filtered.slice(0, FEATURED_COUNT);
+  const otherProjects = filtered.slice(FEATURED_COUNT);
+  
+  // Handle pagination for other projects only (latest projects always show full)
+  const paginatedOther = otherProjects.slice(0, page * PAGE_SIZE);
+  const hasMore = paginatedOther.length < otherProjects.length;
 
   const SORT_OPTIONS: { key: SortKey; label: string; Icon: React.ElementType }[] = [
-    { key: 'updated', label: 'Latest Updated',  Icon: Clock }, // MOVED TO TOP as default
     { key: 'stars',   label: 'Most Stars',        Icon: Star },
     { key: 'forks',   label: 'Most Forks',        Icon: GitFork },
+    { key: 'updated', label: 'Recently Updated',  Icon: Clock },
     { key: 'name',    label: 'Name A–Z',           Icon: TrendingUp },
   ];
 
@@ -786,7 +798,7 @@ export function Projects() {
 
           <p className="mx-auto max-w-md text-sm leading-relaxed px-4"
             style={{ color: 'rgba(148,163,184,.65)', fontFamily: "'DM Sans', sans-serif" }}>
-            Auto-synced from GitHub · README previews · real-time stars &amp; forks · <span className="text-sky-400">Updated projects first</span>
+            Auto-synced from GitHub · README previews · real-time stars &amp; forks
           </p>
         </motion.div>
 
@@ -922,17 +934,55 @@ export function Projects() {
                     key={`${activeCategory}-${sort}-${query}`}
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     transition={{ duration: .28 }}
-                    className="grid gap-4 sm:grid-cols-2">
-                    {paginated.map((p, i) => (
-                      <ProjectCard
-                        key={p.id} project={p} index={i}
-                        onHover={setActiveProject}
-                        featured={p.featured && i < 1}
-                      />
-                    ))}
+                    className="space-y-12">
+                    
+                    {/* Latest Projects Section */}
+                    {latestProjects.length > 0 && (
+                      <div>
+                        <div className="mb-4 flex items-center gap-3">
+                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/70 flex items-center gap-2">
+                            <Clock className="h-3.5 w-3.5" />
+                            Recently Updated
+                          </h3>
+                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          {latestProjects.map((p, i) => (
+                            <ProjectCard
+                              key={p.id} project={p} index={i}
+                              onHover={setActiveProject}
+                              featured={p.featured}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                    {paginated.length === 0 && (
-                      <div className="col-span-2 flex flex-col items-center justify-center py-20 gap-4">
+                    {/* Other Projects Section */}
+                    {paginatedOther.length > 0 && (
+                      <div>
+                        <div className="mb-4 flex items-center gap-3">
+                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-500/20 to-transparent" />
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400/60 flex items-center gap-2">
+                            <Code2 className="h-3.5 w-3.5" />
+                            All Projects
+                          </h3>
+                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-500/20 to-transparent" />
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          {paginatedOther.map((p, i) => (
+                            <ProjectCard
+                              key={p.id} project={p} index={i}
+                              onHover={setActiveProject}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {filtered.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-20 gap-4">
                         <div className="h-16 w-16 rounded-2xl flex items-center justify-center"
                           style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)' }}>
                           <Search className="h-6 w-6" style={{ color: 'rgba(148,163,184,.3)' }} />
@@ -955,8 +1005,10 @@ export function Projects() {
                 <div className="mt-8 flex flex-col items-center gap-4">
                   <p className="text-xs" style={{ color: 'rgba(148,163,184,.35)', fontFamily: "'DM Sans', sans-serif" }}>
                     Showing{' '}
-                    <span className="text-slate-400 font-semibold">{paginated.length}</span>{' '}of{' '}
-                    <span className="text-slate-400 font-semibold">{filtered.length}</span>{' '}repositories
+                    <span className="text-slate-400 font-semibold">{latestProjects.length + paginatedOther.length}</span>{' '}
+                    of{' '}
+                    <span className="text-slate-400 font-semibold">{filtered.length}</span>{' '}
+                    repositories
                   </p>
 
                   {hasMore && (
@@ -1045,6 +1097,29 @@ export function Projects() {
         /* Mobile touch targets */
         @media (max-width: 640px) {
           button, a { -webkit-tap-highlight-color: transparent; }
+        }
+
+        /* Video control button styles */
+        .project-control-btn {
+          width: 28px;
+          height: 28px;
+          border-radius: 9999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(0,0,0,0.5);
+          backdrop-filter: blur(4px);
+          transition: all 0.2s ease;
+          border: 1px solid rgba(255,255,255,0.2);
+        }
+        .project-control-btn:hover {
+          background: rgba(0,0,0,0.7);
+          transform: scale(1.05);
+        }
+        .project-control-icon {
+          width: 14px;
+          height: 14px;
+          color: white;
         }
       `}</style>
     </section>
