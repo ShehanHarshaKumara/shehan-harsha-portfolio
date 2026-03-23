@@ -4,13 +4,14 @@
   "version": "0.0.1",
   "type": "module",
   "engines": {
-    "node": "18.x",
-    "npm": "9.x"
+    "node": "18.x || 20.x",
+    "npm": ">=9.0.0"
   },
   "scripts": {
+    "prebuild": "chmod +x node_modules/.bin/vite 2>/dev/null || true",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "vercel-build": "vite build"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
