@@ -22,7 +22,7 @@ import {
 import {
   Github, ExternalLink, Star, GitFork, Eye,
   Sparkles, Code2, Play, Pause, Volume2, VolumeX,
-  ArrowUpRight, ChevronRight, Terminal, Globe,
+  ArrowUpRight, Terminal, Globe,
   Activity, Zap, Lock, RefreshCw, AlertCircle,
   Search, SlidersHorizontal, TrendingUp, Clock,
   CheckCircle2, X, ChevronDown,
@@ -268,11 +268,161 @@ function ReadmeThumbnail({ src, color, name }: { src: string | null; color: stri
 }
 
 // ─── PROJECT CARD ─────────────────────────────────────────────────────────────
+function SmartProjectButton({
+  href,
+  icon: Icon,
+  eyebrow,
+  label,
+  accent,
+  variant,
+}: {
+  href?: string | null;
+  icon: React.ElementType;
+  eyebrow: string;
+  label: string;
+  accent: string;
+  variant: 'neutral' | 'primary' | 'disabled';
+}) {
+  const disabled = variant === 'disabled' || !href;
+  const frameStyle =
+    variant === 'primary'
+      ? {
+          background: `linear-gradient(135deg, ${accent}, rgba(255,255,255,.22))`,
+          boxShadow: `0 16px 30px ${accent}24`,
+        }
+      : variant === 'disabled'
+        ? {
+            background: 'linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.03))',
+            opacity: 0.7,
+          }
+        : {
+            background: 'linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.04))',
+            boxShadow: '0 10px 24px rgba(2,6,23,.18)',
+          };
+
+  const panelStyle =
+    variant === 'primary'
+      ? {
+          background: 'linear-gradient(180deg, rgba(6,12,24,.84), rgba(3,8,20,.96))',
+          border: '1px solid rgba(255,255,255,.08)',
+          color: '#f8fafc',
+        }
+      : variant === 'disabled'
+        ? {
+            background: 'rgba(8,15,30,.78)',
+            border: '1px solid rgba(255,255,255,.05)',
+            color: 'rgba(148,163,184,.58)',
+          }
+        : {
+            background: 'rgba(8,15,30,.88)',
+            border: '1px solid rgba(255,255,255,.08)',
+            color: 'rgba(226,232,240,.9)',
+          };
+
+  const iconShellStyle =
+    variant === 'primary'
+      ? {
+          background: 'rgba(255,255,255,.12)',
+          border: '1px solid rgba(255,255,255,.16)',
+          color: '#ffffff',
+        }
+      : variant === 'disabled'
+        ? {
+            background: 'rgba(255,255,255,.03)',
+            border: '1px solid rgba(255,255,255,.05)',
+            color: 'rgba(148,163,184,.45)',
+          }
+        : {
+            background: `${accent}18`,
+            border: `1px solid ${accent}28`,
+            color: accent,
+          };
+
+  const arrowShellStyle =
+    variant === 'primary'
+      ? {
+          background: 'rgba(255,255,255,.1)',
+          border: '1px solid rgba(255,255,255,.14)',
+        }
+      : {
+          background: 'rgba(255,255,255,.04)',
+          border: '1px solid rgba(255,255,255,.07)',
+        };
+
+  const content = (
+    <>
+      <span
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover/project-btn:opacity-100"
+        style={{ background: `radial-gradient(circle at top right, ${accent}18, transparent 55%)` }}
+      />
+      <span
+        className="pointer-events-none absolute -left-1/3 top-0 h-full w-1/3 -skew-x-12 opacity-0 transition-all duration-500 group-hover/project-btn:left-[120%] group-hover/project-btn:opacity-100"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent)' }}
+      />
+
+      <div
+        className="relative flex min-h-[58px] w-full items-center gap-3 rounded-[15px] px-3.5 py-2.5"
+        style={panelStyle}
+      >
+        <span
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
+          style={iconShellStyle}
+        >
+          <Icon className="h-4 w-4" />
+        </span>
+
+        <span className="min-w-0 flex-1">
+          <span
+            className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.22em]"
+            style={{ color: variant === 'primary' ? 'rgba(224,242,254,.7)' : 'rgba(148,163,184,.56)' }}
+          >
+            {variant === 'primary' && (
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.7)]" />
+            )}
+            {eyebrow}
+          </span>
+          <span className="mt-1 block truncate text-sm font-semibold">{label}</span>
+        </span>
+
+        <span
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-transform duration-300 group-hover/project-btn:-translate-y-0.5 group-hover/project-btn:translate-x-0.5"
+          style={arrowShellStyle}
+        >
+          {disabled ? <Lock className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />}
+        </span>
+      </div>
+    </>
+  );
+
+  if (disabled) {
+    return (
+      <div className="group/project-btn relative flex flex-1 overflow-hidden rounded-2xl p-px" style={frameStyle}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <motion.a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      whileHover={{ y: -2, scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      className="group/project-btn relative flex flex-1 overflow-hidden rounded-2xl p-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60"
+      style={frameStyle}
+    >
+      {content}
+    </motion.a>
+  );
+}
+
 function ProjectCard({ project, index, onHover, featured }: {
   project: Project; index: number;
   onHover: (p: Project | null) => void; featured?: boolean;
 }) {
   const cfg = lc(project.language);
+  const liveUrl = project.homepage?.trim() || null;
 
   return (
     <motion.div
@@ -388,23 +538,22 @@ function ProjectCard({ project, index, onHover, featured }: {
 
             {/* Action buttons */}
             <div className="flex gap-2">
-              <a href={project.html_url} target="_blank" rel="noopener noreferrer"
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold transition-all hover:border-white/20 active:scale-95"
-                style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', color: 'rgba(148,163,184,.8)' }}>
-                <Github className="h-3.5 w-3.5 flex-shrink-0" /> Code
-              </a>
-              {project.homepage ? (
-                <a href={project.homepage} target="_blank" rel="noopener noreferrer"
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold text-white transition-all active:scale-95"
-                  style={{ background: `linear-gradient(135deg,${cfg.color}dd,${cfg.color}88)`, boxShadow: `0 0 14px ${cfg.color}28` }}>
-                  <Globe className="h-3.5 w-3.5 flex-shrink-0" /> Live <ChevronRight className="h-3 w-3" />
-                </a>
-              ) : (
-                <span className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold"
-                  style={{ background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.04)', color: 'rgba(148,163,184,.28)' }}>
-                  <Lock className="h-3.5 w-3.5 flex-shrink-0" /> No Site
-                </span>
-              )}
+              <SmartProjectButton
+                href={project.html_url}
+                icon={Github}
+                eyebrow="Repository"
+                label="View Code"
+                accent={cfg.color}
+                variant="neutral"
+              />
+              <SmartProjectButton
+                href={liveUrl}
+                icon={liveUrl ? Globe : Lock}
+                eyebrow={liveUrl ? 'Live Site' : 'Preview Offline'}
+                label={liveUrl ? 'Open Project' : 'Coming Soon'}
+                accent={cfg.color}
+                variant={liveUrl ? 'primary' : 'disabled'}
+              />
             </div>
           </div>
 
