@@ -5,6 +5,7 @@ import {
   Trophy, Compass, ArrowUpRight, Zap, Shield, Layers,
 } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
+import { RESUME_URL } from '../constants/links';
 
 // ─── Assets ──────────────────────────────────────────────────────────────────
 const aboutBg    = new URL('../../assets/images/IMG1.png',    import.meta.url).href;
@@ -416,7 +417,7 @@ export function About() {
               <MagneticBtn
                 className="flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white"
                 style={{ background:'linear-gradient(135deg,#38bdf8,#6366f1)', boxShadow:'0 0 28px rgba(99,102,241,.4)' }}
-                onClick={() => window.open('https://1drv.ms/b/c/14d80c7f795708ba/IQA-UY44boggSKdNtoYmYUXnAdw3PACbAFkjuZ9xeH0DnBs?e=ThY96z', '_blank')}>
+                onClick={() => window.open(RESUME_URL, '_blank')}>
                 <BookOpen className="h-4 w-4" /> View Resume <ArrowUpRight className="h-3.5 w-3.5" />
               </MagneticBtn>
               <MagneticBtn

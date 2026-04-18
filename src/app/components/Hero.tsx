@@ -11,6 +11,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { TypeAnimation } from 'react-type-animation';
+import { RESUME_URL } from '../constants/links';
 
 // ─── Social data ──────────────────────────────────────────────
 interface Social {
@@ -57,7 +58,7 @@ const socials: Social[] = [
   },
   {
     icon: Resume,
-    href: 'https://1drv.ms/b/c/14d80c7f795708ba/IQA-UY44boggSKdNtoYmYUXnAdw3PACbAFkjuZ9xeH0DnBs?e=RkmD82',
+    href: RESUME_URL,
     label: 'Resume',
     handle: 'View / Download',
     accent: '#6d28d9',

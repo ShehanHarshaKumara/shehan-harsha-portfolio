@@ -7,6 +7,7 @@ import {
   Download, LogOut, Settings, HelpCircle
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { RESUME_URL } from '../constants/links';
 
 interface NavItem {
   name: string;
@@ -412,6 +413,7 @@ export function Navigation() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  onClick={() => window.open(RESUME_URL, '_blank')}
                   className="w-full mt-4 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
