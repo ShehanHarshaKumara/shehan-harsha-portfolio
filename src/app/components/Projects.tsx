@@ -263,7 +263,7 @@ function ReadmeThumbnail({ src, color, name }: { src: string | null; color: stri
   }
   return (
     <img src={src} alt="preview" onError={() => setErr(true)}
-      className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-110" />
+      className="h-full w-full object-cover object-top transition-transform duration-700 group-hover/project-card:scale-110" />
   );
 }
 
@@ -417,7 +417,7 @@ function SmartProjectButton({
   );
 }
 
-function ProjectCard({ project, index, onHover, featured }: {
+function LegacyProjectCard({ project, index, onHover, featured }: {
   project: Project; index: number;
   onHover: (p: Project | null) => void; featured?: boolean;
 }) {
@@ -567,24 +567,154 @@ function ProjectCard({ project, index, onHover, featured }: {
 }
 
 // ─── SKELETON ─────────────────────────────────────────────────────────────────
-function Skeleton({ wide = false }: { wide?: boolean }) {
+// New grid card used by the projects sections.
+function GridProjectCard({ project, index, onHover }: {
+  project: Project; index: number;
+  onHover: (p: Project | null) => void;
+}) {
+  const cfg = lc(project.language);
+  const liveUrl = project.homepage?.trim() || null;
+  const displayName = project.name.replace(/-/g, ' ');
+  const updatedLabel = new Date(project.updated_at).toLocaleDateString('en', { month: 'short', year: 'numeric' });
+  const visibleTopics = project.topics.slice(0, 2);
+  const [open, setOpen] = useState(false);
+
+  const toggleOpen = () => setOpen(v => !v);
+
   return (
-    <div className={`overflow-hidden rounded-2xl ${wide ? 'sm:col-span-2' : ''}`}
+    <motion.article
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-20px' }}
+      transition={{ duration: .6, delay: Math.min(index, 4) * .06, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -6 }}
+      className="h-full"
+    >
+      <SpotlightCard color={cfg.color}>
+        <div
+          className={`project-card-shell group/project-card ${open ? 'is-open' : ''}`}
+          onMouseEnter={() => onHover(project)}
+          onMouseLeave={() => onHover(null)}
+          onFocus={() => onHover(project)}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onHover(null);
+          }}
+          onClick={toggleOpen}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleOpen();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-expanded={open}
+        >
+          <div className="project-card-media">
+            <ReadmeThumbnail src={project.readmeImage} color={cfg.color} name={project.name} />
+            <div className="project-card-media-overlay" />
+            <div className="project-card-noise" />
+
+            <div className="project-card-badges">
+              {project.featured ? (
+                <span className="project-card-pill project-card-pill-featured">
+                  <Zap className="h-3 w-3" />
+                  Featured
+                </span>
+              ) : (
+                <span className="project-card-pill" style={{ color: cfg.color, borderColor: `${cfg.color}55`, background: `${cfg.color}16` }}>
+                  {project.language ?? 'Project'}
+                </span>
+              )}
+              <span className="project-card-pill project-card-pill-light">{project.category}</span>
+            </div>
+          </div>
+
+          <div className="project-card-overlay">
+            <div className="project-card-overlay-header">
+              <div className="min-w-0">
+                <p className="project-card-overlay-kicker">{project.featured ? 'Featured Project' : 'Project Details'}</p>
+                <h3 className="project-card-overlay-title">{displayName}</h3>
+              </div>
+              <span className="project-card-overlay-status">{project.category}</span>
+            </div>
+
+            <p className="project-card-overlay-description">
+              {project.description ?? 'No description provided.'}
+            </p>
+
+            <div className="project-card-overlay-meta">
+              <span className="project-card-meta-chip" style={{ color: cfg.color, borderColor: `${cfg.color}40` }}>
+                {project.language ?? 'N/A'}
+              </span>
+              <span className="project-card-meta-chip">{updatedLabel}</span>
+              {visibleTopics.map((topic) => (
+                <span key={topic} className="project-card-meta-chip">
+                  #{topic}
+                </span>
+              ))}
+            </div>
+
+            <div className="project-card-actions" onClick={(e) => e.stopPropagation()}>
+              {liveUrl ? (
+                <motion.a
+                  href={liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="project-card-button"
+                >
+                  Live Demo
+                </motion.a>
+              ) : (
+                <div className="project-card-button project-card-button-disabled">
+                  Coming Soon
+                </div>
+              )}
+              <motion.a
+                href={project.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                className="project-card-button project-card-button-secondary"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Source Code
+              </motion.a>
+            </div>
+          </div>
+        </div>
+      </SpotlightCard>
+    </motion.article>
+  );
+}
+
+// Loading placeholder for the project grid.
+function Skeleton() {
+  return (
+    <div className="overflow-hidden rounded-[1.6rem]"
       style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.06)' }}>
-      <div className="skeleton-shimmer" style={{ height: wide ? '180px' : '140px' }} />
-      <div className="p-4 space-y-3">
-        <div className="flex gap-2.5">
-          <div className="h-9 w-9 rounded-xl skeleton-shimmer flex-shrink-0" />
+      <div className="skeleton-shimmer" style={{ height: '220px' }} />
+      <div className="space-y-4 p-5">
+        <div className="flex gap-3">
+          <div className="h-11 w-11 rounded-2xl skeleton-shimmer flex-shrink-0" />
           <div className="space-y-2 flex-1">
-            <div className="h-4 w-2/3 rounded-lg skeleton-shimmer" />
+            <div className="h-5 w-2/3 rounded-lg skeleton-shimmer" />
             <div className="h-3 w-1/3 rounded-lg skeleton-shimmer" />
           </div>
         </div>
         <div className="h-3 w-full rounded skeleton-shimmer" />
         <div className="h-3 w-5/6 rounded skeleton-shimmer" />
-        <div className="flex gap-2 mt-3">
-          <div className="h-9 flex-1 rounded-xl skeleton-shimmer" />
-          <div className="h-9 flex-1 rounded-xl skeleton-shimmer" />
+        <div className="grid grid-cols-3 gap-2">
+          <div className="h-16 rounded-2xl skeleton-shimmer" />
+          <div className="h-16 rounded-2xl skeleton-shimmer" />
+          <div className="h-16 rounded-2xl skeleton-shimmer" />
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className="h-14 rounded-2xl skeleton-shimmer" />
+          <div className="h-14 rounded-2xl skeleton-shimmer" />
         </div>
       </div>
     </div>
@@ -1068,13 +1198,13 @@ export function Projects() {
         </motion.div>
 
         {/* ── MAIN LAYOUT: cards LEFT | video RIGHT (video moves below on mobile) ── */}
-        <div className="flex flex-col gap-10 lg:grid lg:grid-cols-[1fr_320px] xl:lg:grid-cols-[1fr_340px]">
+        <div className="flex flex-col gap-10 lg:grid lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_340px]">
 
           {/* ── CARDS COLUMN ── */}
           <div className="min-w-0">
             {loading ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} wide={i === 0} />)}
+              <div className="project-grid">
+                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} />)}
               </div>
             ) : (
               <>
@@ -1096,12 +1226,11 @@ export function Projects() {
                           </h3>
                           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
                         </div>
-                        <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="project-grid">
                           {latestProjects.map((p, i) => (
-                            <ProjectCard
+                            <GridProjectCard
                               key={p.id} project={p} index={i}
                               onHover={setActiveProject}
-                              featured={p.featured}
                             />
                           ))}
                         </div>
@@ -1119,9 +1248,9 @@ export function Projects() {
                           </h3>
                           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-500/20 to-transparent" />
                         </div>
-                        <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="project-grid">
                           {paginatedOther.map((p, i) => (
-                            <ProjectCard
+                            <GridProjectCard
                               key={p.id} project={p} index={i}
                               onHover={setActiveProject}
                             />
@@ -1215,6 +1344,223 @@ export function Projects() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500&display=swap');
 
+        .project-grid {
+          display: grid;
+          gap: 1.25rem;
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+          align-items: stretch;
+        }
+
+        .project-card-shell {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          overflow: hidden;
+          border-radius: 18px;
+          background: #f2f2f2;
+          box-shadow: 0 0 0 1px rgba(255,255,255,.08);
+          cursor: pointer;
+          transition: transform .6s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow .6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .project-card-shell:hover,
+        .project-card-shell:focus-within {
+          transform: scale(1.03);
+          box-shadow: 0 16px 30px rgba(15, 23, 42, 0.28);
+        }
+
+        .project-card-media {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: #dbe4f0;
+        }
+
+        .project-card-media-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, rgba(15,23,42,.08) 0%, rgba(15,23,42,.18) 100%);
+        }
+
+        .project-card-noise {
+          position: absolute;
+          inset: 0;
+          opacity: .05;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          background-size: 150px 150px;
+          mix-blend-mode: multiply;
+        }
+
+        .project-card-badges {
+          position: absolute;
+          top: 14px;
+          left: 14px;
+          right: 14px;
+          z-index: 2;
+          display: flex;
+          justify-content: space-between;
+          gap: .75rem;
+        }
+
+        .project-card-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: .35rem;
+          padding: .45rem .75rem;
+          border-radius: 999px;
+          border: 1px solid rgba(15,23,42,.14);
+          background: rgba(255,255,255,.78);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+          color: #334155;
+          backdrop-filter: blur(6px);
+        }
+
+        .project-card-pill-featured {
+          border-color: rgba(245,158,11,.35);
+          background: rgba(254,243,199,.92);
+          color: #b45309;
+        }
+
+        .project-card-pill-light {
+          margin-left: auto;
+        }
+
+        .project-card-overlay {
+          position: absolute;
+          inset: 0;
+          z-index: 3;
+          display: flex;
+          flex-direction: column;
+          gap: .9rem;
+          padding: 1.1rem;
+          background: linear-gradient(180deg, #f8fafc, #eef2ff);
+          color: #1e293b;
+          transform: translateY(100%);
+          opacity: 0;
+          pointer-events: none;
+          transition: transform .6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity .35s ease;
+          box-sizing: border-box;
+          overflow-y: auto;
+        }
+
+        .project-card-shell.is-open .project-card-overlay {
+          transform: translateY(0);
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .project-card-overlay-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: .8rem;
+        }
+
+        .project-card-overlay-kicker {
+          margin: 0 0 .3rem;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+          color: #64748b;
+        }
+
+        .project-card-overlay-title {
+          margin: 0;
+          font-family: 'Outfit', sans-serif;
+          font-size: 1.2rem;
+          font-weight: 800;
+          line-height: 1.1;
+          color: #0f172a;
+        }
+
+        .project-card-overlay-status {
+          display: inline-flex;
+          align-items: center;
+          gap: .35rem;
+          flex-shrink: 0;
+          padding: .45rem .7rem;
+          border-radius: 999px;
+          background: rgba(255,255,255,.72);
+          border: 1px solid rgba(15,23,42,.12);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: .16em;
+          text-transform: uppercase;
+          color: #475569;
+        }
+
+        .project-card-overlay-description {
+          margin: 0;
+          font-size: 12px;
+          line-height: 1.5;
+          color: #64748b;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .project-card-overlay-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: .45rem;
+        }
+
+        .project-card-meta-chip {
+          display: inline-flex;
+          align-items: center;
+          padding: .35rem .6rem;
+          border-radius: 999px;
+          border: 1px solid rgba(15,23,42,.1);
+          background: rgba(255,255,255,.78);
+          font-size: 10px;
+          font-weight: 600;
+          color: #475569;
+        }
+
+        .project-card-actions {
+          margin-top: auto;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: .65rem;
+        }
+
+        .project-card-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: .5rem;
+          min-height: 42px;
+          padding: .75rem .9rem;
+          border-radius: 8px;
+          background: #64748b;
+          border: none;
+          text-decoration: none;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 700;
+          transition: opacity .2s ease, transform .2s ease, background .2s ease;
+        }
+
+        .project-card-button:hover {
+          opacity: .95;
+        }
+
+        .project-card-button-secondary {
+          background: transparent;
+          color: #64748b;
+          border: 1px solid #94a3b8;
+        }
+
+        .project-card-button-disabled {
+          opacity: .76;
+          cursor: default;
+        }
+
         /* Scrollbar hide for category pills */
         .overflow-x-auto::-webkit-scrollbar { display: none; }
 
@@ -1246,6 +1592,29 @@ export function Projects() {
         /* Mobile touch targets */
         @media (max-width: 640px) {
           button, a { -webkit-tap-highlight-color: transparent; }
+        }
+
+        @media (max-width: 767px) {
+          .project-card-shell.is-open {
+            aspect-ratio: auto;
+            min-height: 340px;
+          }
+
+          .project-card-shell.is-open .project-card-overlay {
+            position: relative;
+            transform: none;
+            opacity: 1;
+            pointer-events: auto;
+          }
+
+          .project-card-shell.is-open .project-card-media {
+            position: relative;
+            min-height: 210px;
+          }
+
+          .project-card-actions {
+            grid-template-columns: 1fr;
+          }
         }
 
         /* Video control button styles */
