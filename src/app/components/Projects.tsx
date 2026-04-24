@@ -1357,8 +1357,8 @@ export function Projects() {
           aspect-ratio: 16 / 9;
           overflow: hidden;
           border-radius: 18px;
-          background: #f2f2f2;
-          box-shadow: 0 0 0 1px rgba(255,255,255,.08);
+          background: #06101d;
+          box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 18px 38px rgba(2,6,23,.38);
           cursor: pointer;
           transition: transform .6s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow .6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -1366,20 +1366,20 @@ export function Projects() {
         .project-card-shell:hover,
         .project-card-shell:focus-within {
           transform: scale(1.03);
-          box-shadow: 0 16px 30px rgba(15, 23, 42, 0.28);
+          box-shadow: 0 24px 44px rgba(2, 6, 23, 0.5);
         }
 
         .project-card-media {
           position: absolute;
           inset: 0;
           overflow: hidden;
-          background: #dbe4f0;
+          background: #08111f;
         }
 
         .project-card-media-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(180deg, rgba(15,23,42,.08) 0%, rgba(15,23,42,.18) 100%);
+          background: linear-gradient(180deg, rgba(2,6,23,.18) 0%, rgba(2,6,23,.46) 100%);
         }
 
         .project-card-noise {
@@ -1388,7 +1388,7 @@ export function Projects() {
           opacity: .05;
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
           background-size: 150px 150px;
-          mix-blend-mode: multiply;
+          mix-blend-mode: screen;
         }
 
         .project-card-badges {
@@ -1408,20 +1408,20 @@ export function Projects() {
           gap: .35rem;
           padding: .45rem .75rem;
           border-radius: 999px;
-          border: 1px solid rgba(15,23,42,.14);
-          background: rgba(255,255,255,.78);
+          border: 1px solid rgba(255,255,255,.14);
+          background: rgba(2,6,23,.62);
           font-size: 10px;
           font-weight: 700;
           letter-spacing: .18em;
           text-transform: uppercase;
-          color: #334155;
+          color: #dbe7f5;
           backdrop-filter: blur(6px);
         }
 
         .project-card-pill-featured {
           border-color: rgba(245,158,11,.35);
-          background: rgba(254,243,199,.92);
-          color: #b45309;
+          background: rgba(146,64,14,.34);
+          color: #fbbf24;
         }
 
         .project-card-pill-light {
@@ -1436,8 +1436,10 @@ export function Projects() {
           flex-direction: column;
           gap: .9rem;
           padding: 1.1rem;
-          background: linear-gradient(180deg, #f8fafc, #eef2ff);
-          color: #1e293b;
+          background:
+            radial-gradient(circle at top right, rgba(56,189,248,.12), transparent 28%),
+            linear-gradient(180deg, #09111f, #040915);
+          color: #dbe7f5;
           transform: translateY(100%);
           opacity: 0;
           pointer-events: none;
@@ -1465,7 +1467,7 @@ export function Projects() {
           font-weight: 700;
           letter-spacing: .18em;
           text-transform: uppercase;
-          color: #64748b;
+          color: rgba(148,163,184,.82);
         }
 
         .project-card-overlay-title {
@@ -1474,7 +1476,7 @@ export function Projects() {
           font-size: 1.2rem;
           font-weight: 800;
           line-height: 1.1;
-          color: #0f172a;
+          color: #f8fafc;
         }
 
         .project-card-overlay-status {
@@ -1484,20 +1486,20 @@ export function Projects() {
           flex-shrink: 0;
           padding: .45rem .7rem;
           border-radius: 999px;
-          background: rgba(255,255,255,.72);
-          border: 1px solid rgba(15,23,42,.12);
+          background: rgba(255,255,255,.08);
+          border: 1px solid rgba(255,255,255,.12);
           font-size: 10px;
           font-weight: 700;
           letter-spacing: .16em;
           text-transform: uppercase;
-          color: #475569;
+          color: #cbd5e1;
         }
 
         .project-card-overlay-description {
           margin: 0;
           font-size: 12px;
           line-height: 1.5;
-          color: #64748b;
+          color: rgba(203,213,225,.78);
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
@@ -1515,11 +1517,11 @@ export function Projects() {
           align-items: center;
           padding: .35rem .6rem;
           border-radius: 999px;
-          border: 1px solid rgba(15,23,42,.1);
-          background: rgba(255,255,255,.78);
+          border: 1px solid rgba(255,255,255,.1);
+          background: rgba(255,255,255,.06);
           font-size: 10px;
           font-weight: 600;
-          color: #475569;
+          color: #cbd5e1;
         }
 
         .project-card-actions {
@@ -1537,7 +1539,7 @@ export function Projects() {
           min-height: 42px;
           padding: .75rem .9rem;
           border-radius: 8px;
-          background: #64748b;
+          background: linear-gradient(135deg, #0f172a, #1d4ed8);
           border: none;
           text-decoration: none;
           color: #fff;
@@ -1552,12 +1554,14 @@ export function Projects() {
 
         .project-card-button-secondary {
           background: transparent;
-          color: #64748b;
-          border: 1px solid #94a3b8;
+          color: #cbd5e1;
+          border: 1px solid rgba(203,213,225,.32);
         }
 
         .project-card-button-disabled {
-          opacity: .76;
+          background: rgba(255,255,255,.08);
+          color: #94a3b8;
+          opacity: .88;
           cursor: default;
         }
 
