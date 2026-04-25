@@ -88,6 +88,17 @@ const deriveCategory = (repo: GithubRepo): string => {
   return 'Full Stack';
 };
 
+const buildCategoryFilters = (projects: Project[]) => [
+  'All',
+  ...Array.from(
+    new Set(
+      projects
+        .map((project) => project.category)
+        .filter((category) => category && category !== 'Full Stack')
+    )
+  ).sort(),
+];
+
 const extractReadmeImage = (base64: string, repoUrl: string): string | null => {
   try {
     const text = atob(base64.replace(/\n/g, ''));
@@ -423,6 +434,7 @@ function LegacyProjectCard({ project, index, onHover, featured }: {
 }) {
   const cfg = lc(project.language);
   const liveUrl = project.homepage?.trim() || null;
+  const showCategory = Boolean(project.category) && project.category !== 'Full Stack';
 
   return (
     <motion.div
@@ -465,10 +477,12 @@ function LegacyProjectCard({ project, index, onHover, featured }: {
                   <Zap className="h-2.5 w-2.5" /> Featured
                 </span>
               ) : <span />}
-              <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                style={{ background: `${cfg.color}1a`, border: `1px solid ${cfg.color}40`, color: cfg.color, backdropFilter: 'blur(8px)' }}>
-                {project.category}
-              </span>
+              {showCategory ? (
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                  style={{ background: `${cfg.color}1a`, border: `1px solid ${cfg.color}40`, color: cfg.color, backdropFilter: 'blur(8px)' }}>
+                  {project.category}
+                </span>
+              ) : null}
             </div>
           </div>
 
@@ -577,6 +591,7 @@ function GridProjectCard({ project, index, onHover }: {
   const displayName = project.name.replace(/-/g, ' ');
   const updatedLabel = new Date(project.updated_at).toLocaleDateString('en', { month: 'short', year: 'numeric' });
   const visibleTopics = project.topics.slice(0, 2);
+  const showCategory = Boolean(project.category) && project.category !== 'Full Stack';
   const [open, setOpen] = useState(false);
 
   const toggleOpen = () => setOpen(v => !v);
@@ -608,7 +623,7 @@ function GridProjectCard({ project, index, onHover }: {
           }}
           role="button"
           tabIndex={0}
-          aria-expanded={open}
+          aria-expanded={open ? 'true' : 'false'}
         >
           <div className="project-card-media">
             <ReadmeThumbnail src={project.readmeImage} color={cfg.color} name={project.name} />
@@ -626,7 +641,9 @@ function GridProjectCard({ project, index, onHover }: {
                   {project.language ?? 'Project'}
                 </span>
               )}
-              <span className="project-card-pill project-card-pill-light">{project.category}</span>
+              {showCategory ? (
+                <span className="project-card-pill project-card-pill-light">{project.category}</span>
+              ) : null}
             </div>
           </div>
 
@@ -636,7 +653,9 @@ function GridProjectCard({ project, index, onHover }: {
                 <p className="project-card-overlay-kicker">{project.featured ? 'Featured Project' : 'Project Details'}</p>
                 <h3 className="project-card-overlay-title">{displayName}</h3>
               </div>
-              <span className="project-card-overlay-status">{project.category}</span>
+              {showCategory ? (
+                <span className="project-card-overlay-status">{project.category}</span>
+              ) : null}
             </div>
 
             <p className="project-card-overlay-description">
@@ -901,7 +920,7 @@ export function Projects() {
           new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         );
         setProjects(sorted);
-        setCategories(['All', ...Array.from(new Set(sorted.map(p => p.category))).sort()]);
+        setCategories(buildCategoryFilters(sorted));
         setLoading(false);
         return;
       }
@@ -931,7 +950,7 @@ export function Projects() {
         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
       });
       
-      setCategories(['All', ...Array.from(new Set(enriched.map(p => p.category))).sort()]);
+      setCategories(buildCategoryFilters(enriched));
       setProjects(enriched);
       saveCache(enriched);
       if (force) setToast({ msg: 'Projects refreshed from GitHub!', type: 'success' });
@@ -946,7 +965,7 @@ export function Projects() {
               new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
             );
             setProjects(sorted);
-            setCategories(['All', ...Array.from(new Set(sorted.map((p: Project) => p.category))).sort()]);
+            setCategories(buildCategoryFilters(sorted));
           }
         }
       } catch { /**/ }

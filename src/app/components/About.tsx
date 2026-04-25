@@ -17,57 +17,88 @@ const PLAYBACK_RATE = 0.45;
 // ─── Data (updated with Shehan's real info) ───────────────────────────────────
 const features = [
   {
-    icon: Cpu,      title: 'Modern Stack',
-    description: 'React, Next.js, TypeScript, Vue, Angular & Svelte.',
+    icon: Server,   title: 'Laravel Platforms',
+    description: 'Built full-stack Laravel applications for education, travel, food delivery, and ERP workflows.',
     accent: '#38bdf8', grad: 'rgba(56,189,248,0.08)',
-    border: 'rgba(56,189,248,0.2)', tags: ['Next.js','React 18','TS 5'],
+    border: 'rgba(56,189,248,0.2)', tags: ['Laravel 11','PHP','Blade'],
   },
   {
-    icon: Cloud,    title: 'Cloud Native',
-    description: 'AWS, GCP, Azure and serverless architecture specialist.',
+    icon: Shield,   title: 'APIs & Access Control',
+    description: 'Designed REST APIs, authentication flows, and RBAC systems for secure multi-user products.',
     accent: '#34d399', grad: 'rgba(52,211,153,0.08)',
-    border: 'rgba(52,211,153,0.2)', tags: ['AWS','GCP','Azure'],
+    border: 'rgba(52,211,153,0.2)', tags: ['REST API','Auth','RBAC'],
   },
   {
-    icon: Palette,  title: 'UI / UX Design',
-    description: 'Beautiful, intuitive interfaces with modern design tools.',
+    icon: Cpu,      title: 'Data & Business Logic',
+    description: 'Handled MySQL schema design, query optimization, reporting flows, and complex business rules.',
     accent: '#c084fc', grad: 'rgba(192,132,252,0.08)',
-    border: 'rgba(192,132,252,0.2)', tags: ['Figma','Framer','Tailwind'],
+    border: 'rgba(192,132,252,0.2)', tags: ['MySQL','Optimization','Reports'],
   },
   {
-    icon: Server,   title: 'Backend & Mobile',
-    description: 'Scalable APIs with Laravel, Node.js, Spring & Flutter.',
+    icon: Cloud,    title: 'Deployment & Quality',
+    description: 'Shipped work to production with Nginx, VPS, SSL, Git workflows, and Pest/PHPUnit testing.',
     accent: '#fb923c', grad: 'rgba(251,146,60,0.08)',
-    border: 'rgba(251,146,60,0.2)', tags: ['Laravel','Flutter','Node.js'],
+    border: 'rgba(251,146,60,0.2)', tags: ['Nginx','VPS','Pest/PHPUnit'],
   },
 ];
 
-const journey = [
-  { year:'2022', title:'Computer Hardware',  desc:'Studied Computer Hardware Engineering at Balapitiya Technical College.', icon:Rocket,  color:'#38bdf8' },
-  { year:'2023', title:'NIBM Enrollment',    desc:'Started Software Engineering degree at NIBM Campus, Colombo.',           icon:Target,  color:'#c084fc' },
-  { year:'2023', title:'First Big Project',  desc:'Built enterprise-grade web applications & contributed to open-source.',  icon:Trophy,  color:'#fbbf24' },
+const legacyJourney = [
+  { year:'Sep 2025',  title:'Joined CodeXpress',    desc:'Started at CodeXpress IT Solutions as a Web Developer Intern in a 60-hour-per-week industrial training program.', icon:Rocket, color:'#38bdf8' },
+  { year:'Nov 2025',  title:'Completed Internship', desc:'Finished the 3-month internship with 650+ hours across Laravel development, APIs, databases, and deployment.',         icon:Target, color:'#c084fc' },
+  { year:'Late 2025', title:'Promoted Full Time',   desc:'Moved into a permanent Full Stack Developer role based on performance, dedication, and technical capability.',           icon:Award,  color:'#fbbf24' },
   { year:'2024', title:'Frontend Developer', desc:'Working at Sri Lanka Dedicated Economic Center — pixel-perfect UIs.',    icon:Users,   color:'#34d399' },
   { year:'2025', title:'AI / ML Integration',desc:'Exploring AI/ML, LLMs and cloud-native distributed systems.',            icon:Brain,   color:'#f472b6' },
 ];
 
-const achievements = [
+const journey = [
+  { year:'Sep 2025',  title:'Joined CodeXpress',    desc:'Started at CodeXpress IT Solutions as a Web Developer Intern in a 60-hour-per-week industrial training program.', icon:Rocket, color:'#38bdf8' },
+  { year:'Nov 2025',  title:'Completed Internship', desc:'Finished the 3-month internship with 650+ hours across Laravel development, APIs, databases, and deployment.',         icon:Target, color:'#c084fc' },
+  { year:'Late 2025', title:'Promoted Full Time',   desc:'Moved into a permanent Full Stack Developer role based on performance, dedication, and technical capability.',           icon:Award,  color:'#fbbf24' },
+  { year:'2025-2026', title:'Delivered 5 Systems',  desc:'Contributed to Education Management, Hanguk Lanka Travel, Dream X Seller, Online Food Delivery, and ERP platforms.',    icon:Trophy, color:'#34d399' },
+  { year:'2026',      title:'Professional Growth',  desc:'Strengthened problem-solving, documentation, teamwork, client communication, and multi-project ownership.',                icon:Brain,  color:'#f472b6' },
+];
+
+const legacyAchievements = [
   { icon:Award,   title:'Frontend Developer',  desc:'At Sri Lanka Dedicated Economic Center — leading responsive web & mobile apps.',  grad:'135deg,#fbbf24,#f59e0b' },
   { icon:Github,  title:'OSS Contributor',      desc:'Active GitHub contributor across multiple repositories.',                          grad:'135deg,#94a3b8,#64748b' },
   { icon:BookOpen,title:'Tech Enthusiast',      desc:'Continuous learner — always exploring cutting-edge technologies.',                 grad:'135deg,#38bdf8,#06b6d4' },
   { icon:Compass, title:'Full-Stack Mindset',   desc:'From frontend to backend, mobile to cloud — T-shaped skills.',                    grad:'135deg,#34d399,#10b981' },
 ];
 
-const stats = [
+const achievements = [
+  { icon:Award,  title:'Permanent Appointment',   desc:'Progressed from Web Developer Intern to permanent Full Stack Developer at CodeXpress IT Solutions.', grad:'135deg,#fbbf24,#f59e0b' },
+  { icon:Layers, title:'5 Major Systems',         desc:'Worked across education, travel, seller management, food delivery, and ERP domains.',                grad:'135deg,#94a3b8,#64748b' },
+  { icon:Shield, title:'Secure Delivery',         desc:'Implemented authentication, RBAC, payment integration, and production deployment workflows.',        grad:'135deg,#38bdf8,#06b6d4' },
+  { icon:Users,  title:'Professional Discipline', desc:'Handled 60-hour weeks, deadlines, documentation, and collaborative delivery with consistency.',      grad:'135deg,#34d399,#10b981' },
+];
+
+const legacyStats = [
   { icon:Code2,  label:'Languages',    value:'9+',   note:'Mastered',     grad:'135deg,#38bdf8,#6366f1' },
   { icon:Globe,  label:'Frameworks',   value:'15+',  note:'In arsenal',   grad:'135deg,#c084fc,#ec4899' },
   { icon:Users,  label:'Projects',     value:'10+',  note:'Shipped',      grad:'135deg,#34d399,#10b981' },
   { icon:Coffee, label:'Coffee',       value:'∞',    note:'Never Enough', grad:'135deg,#fb923c,#ef4444' },
 ];
 
-const skills = [
+const stats = [
+  { icon:BookOpen, label:'Training Hours', value:'650+', note:'Hands-on build',       grad:'135deg,#38bdf8,#6366f1' },
+  { icon:Code2,    label:'Major Systems',  value:'5',    note:'Real projects',        grad:'135deg,#c084fc,#ec4899' },
+  { icon:Target,   label:'Work Week',      value:'60',   note:'Hours per week',       grad:'135deg,#34d399,#10b981' },
+  { icon:Award,    label:'Tenure',         value:'7',    note:'Months at CodeXpress', grad:'135deg,#fb923c,#ef4444' },
+];
+
+const legacySkills = [
   { label:'React / Next.js', pct:92 }, { label:'TypeScript',  pct:88 },
   { label:'Laravel / PHP',   pct:85 }, { label:'Flutter',     pct:80 },
   { label:'AWS / Cloud',     pct:78 }, { label:'UI / UX',     pct:90 },
+];
+
+const skills = [
+  { label:'Laravel / PHP',        pct:90 },
+  { label:'REST API Design',      pct:88 },
+  { label:'MySQL / Optimization', pct:86 },
+  { label:'Auth / RBAC',          pct:85 },
+  { label:'Deployment / Nginx',   pct:83 },
+  { label:'Testing / Git',        pct:80 },
 ];
 
 // ─── Magnetic Button ──────────────────────────────────────────────────────────
@@ -228,7 +259,7 @@ export function About() {
             className="mb-8 inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.18em]"
             style={{ background:'rgba(56,189,248,.07)', border:'1px solid rgba(56,189,248,.22)', color:'#7dd3fc' }}>
             <Sparkles className="h-3.5 w-3.5" />
-            Innovation Meets Excellence
+            CodeXpress Experience
           </motion.div>
 
           <h2 className="mb-7 text-[clamp(3rem,10vw,6.5rem)] font-black leading-[.9] tracking-tight">
@@ -252,7 +283,7 @@ export function About() {
             style={{ color:'rgba(148,163,184,.85)' }}
             initial={{ opacity:0 }} animate={heroInView ? { opacity:1 } : {}}
             transition={{ delay:.45 }}>
-            Software Engineering undergraduate from Sri Lanka, transforming complex problems into elegant, scalable solutions.
+            Software Engineering undergraduate from Sri Lanka with hands-on experience at CodeXpress IT Solutions, building Laravel systems, REST APIs, secure access control, and production-ready deployments.
           </motion.p>
 
           <motion.div
@@ -260,9 +291,9 @@ export function About() {
             initial={{ opacity:0, y:12 }} animate={heroInView ? { opacity:1, y:0 } : {}}
             transition={{ delay:.55 }}>
             {[
-              { icon:Zap,    label:'Performance First'   },
-              { icon:Shield, label:'Clean Code Advocate' },
-              { icon:Layers, label:'Scalable by Design'  },
+              { icon:Zap,    label:'650+ Training Hours' },
+              { icon:Shield, label:'RBAC & Secure APIs'  },
+              { icon:Layers, label:'Laravel to Deployment' },
             ].map(({ icon: Icon, label }) => (
               <span key={label}
                 className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium"
@@ -320,7 +351,7 @@ export function About() {
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
                     </span>
                     <Globe className="h-4 w-4 text-sky-400" />
-                    <span className="font-semibold tracking-wide text-white text-sm">Code. Create. Innovate.</span>
+                    <span className="font-semibold tracking-wide text-white text-sm">Industrial Training to Production Delivery</span>
                     <span className="ml-auto rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-400">Live</span>
                   </div>
                 </motion.div>
@@ -329,15 +360,21 @@ export function About() {
               {/* Floating badges */}
               <motion.div
                 animate={{ y:[-4,4,-4] }} transition={{ duration:5, repeat:Infinity, ease:'easeInOut' }}
-                className="absolute -right-4 -top-4 rounded-2xl px-5 py-3 text-sm font-bold text-white shadow-2xl"
+                className="hidden absolute -right-4 -top-4 rounded-2xl px-5 py-3 text-sm font-bold text-white shadow-2xl"
                 style={{ background:'linear-gradient(135deg,#38bdf8,#6366f1)', boxShadow:'0 0 32px rgba(99,102,241,.5)' }}>
                 🇱🇰 Sri Lanka
+              </motion.div>
+              <motion.div
+                animate={{ y:[-4,4,-4] }} transition={{ duration:5, repeat:Infinity, ease:'easeInOut' }}
+                className="absolute -right-4 -top-4 rounded-2xl px-5 py-3 text-sm font-bold text-white shadow-2xl"
+                style={{ background:'linear-gradient(135deg,#38bdf8,#6366f1)', boxShadow:'0 0 32px rgba(99,102,241,.5)' }}>
+                CodeXpress IT
               </motion.div>
               <motion.div
                 animate={{ y:[4,-4,4] }} transition={{ duration:6, repeat:Infinity, ease:'easeInOut', delay:.6 }}
                 className="absolute -bottom-4 -left-4 rounded-2xl px-5 py-3 text-sm font-bold shadow-2xl"
                 style={{ background:'rgba(16,185,129,.1)', backdropFilter:'blur(14px)', border:'1px solid rgba(16,185,129,.35)', color:'#6ee7b7', boxShadow:'0 0 24px rgba(16,185,129,.25)' }}>
-                10+ Projects
+                650+ Hours
               </motion.div>
             </div>
           </motion.div>
@@ -363,12 +400,15 @@ export function About() {
                   Kumara
                 </span>
               </h3>
-              <p className="mt-2 text-sm font-medium" style={{ color:'#7dd3fc' }}>
+              <p className="hidden mt-2 text-sm font-medium" style={{ color:'#7dd3fc' }}>
                 Software Engineering Undergraduate · NIBM Campus
+              </p>
+              <p className="mt-2 text-sm font-medium" style={{ color:'#7dd3fc' }}>
+                Web Developer Intern to Full Stack Developer - CodeXpress IT Solutions
               </p>
             </div>
 
-            <div className="space-y-4 text-[15px] leading-[1.75]" style={{ color:'rgba(148,163,184,.85)' }}>
+            <div className="hidden space-y-4 text-[15px] leading-[1.75]" style={{ color:'rgba(148,163,184,.85)' }}>
               <p>
                 I'm not just a developer — I'm a{' '}
                 <span className="font-semibold text-sky-400">digital architect</span>{' '}
@@ -376,6 +416,18 @@ export function About() {
               </p>
               <p>
                 With a <span className="font-semibold text-purple-400">full-stack mindset</span> and an eye for detail, I craft applications that don't just work — they inspire. From backend architecture with Laravel & Spring to pixel-perfect UIs with React.
+              </p>
+            </div>
+
+            <div className="space-y-4 text-[15px] leading-[1.75]" style={{ color:'rgba(148,163,184,.85)' }}>
+              <p>
+                I started at CodeXpress IT Solutions as a Web Developer Intern on September 1, 2025, working in an intensive 60-hour-per-week industrial training environment built around real business systems.
+              </p>
+              <p>
+                After completing 650+ hours and a 3-month internship, I was appointed as a permanent <span className="font-semibold text-purple-400">Full Stack Developer</span> based on performance, dedication, and technical capability.
+              </p>
+              <p>
+                My hands-on work spans <span className="font-semibold text-sky-400">Laravel applications</span>, RESTful APIs, MySQL optimization, authentication and RBAC systems, payment gateway integration, and Nginx/VPS/SSL deployment across education, travel, seller management, food delivery, and ERP platforms.
               </p>
             </div>
 
@@ -404,7 +456,7 @@ export function About() {
 
             {/* Tags */}
             <div className="flex flex-wrap gap-2 pt-1">
-              {['React','Laravel','TypeScript','Flutter','AWS','Python','PHP','Vue.js','Docker'].map(t => (
+              {['Laravel','PHP','MySQL','REST API','RBAC','Payment Gateway','Nginx','VPS','Pest/PHPUnit'].map(t => (
                 <motion.span key={t} whileHover={{ scale:1.08, y:-2 }}
                   className="cursor-default rounded-full px-3.5 py-1.5 text-xs font-medium transition-all"
                   style={{ background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.09)', color:'rgba(148,163,184,.8)' }}>
