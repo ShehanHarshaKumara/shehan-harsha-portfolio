@@ -27,6 +27,7 @@ import {
   Search, SlidersHorizontal, TrendingUp, Clock,
   CheckCircle2, X, ChevronDown,
 } from 'lucide-react';
+import { projectSnapshot } from '../data/projectSnapshot';
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const GITHUB_USERNAME = 'ShehanHarshaKumara';
@@ -35,6 +36,15 @@ const CACHE_TTL_MS    = 30 * 60 * 1000;
 const MAX_REPOS       = 50;
 const FEATURED_COUNT  = 4;
 const PAGE_SIZE       = 8;
+const GITHUB_API_VERSION = '2022-11-28';
+const README_FILE_CANDIDATES = [
+  'README.md',
+  'README.MD',
+  'readme.md',
+  'Readme.md',
+  'README.rst',
+  'README.txt',
+];
 
 // ─── Assets ───────────────────────────────────────────────────────────────────
 const projectBg    = new URL('../../assets/images/IMG1.png',   import.meta.url).href;
@@ -99,43 +109,115 @@ const buildCategoryFilters = (projects: Project[]) => [
   ).sort(),
 ];
 
-const extractReadmeImage = (base64: string, repoUrl: string): string | null => {
+const githubHeaders = (accept = 'application/vnd.github+json') => {
+  const headers: Record<string, string> = {
+    Accept: accept,
+    'X-GitHub-Api-Version': GITHUB_API_VERSION,
+  };
+  return headers;
+};
+
+const repoPreviewImage = (owner: string, repo: string) =>
+  `https://opengraph.githubassets.com/portfolio/${owner}/${repo}`;
+
+const toRawAssetUrl = (owner: string, repo: string, defaultBranch: string, assetPath: string) =>
+  `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${assetPath.replace(/^\.?\//, '')}`;
+
+const extractReadmeImage = (
+  text: string,
+  owner: string,
+  repo: string,
+  defaultBranch: string,
+): string | null => {
   try {
-    const text = atob(base64.replace(/\n/g, ''));
     const md = text.match(/!\[[^\]]*\]\(([^)]+)\)/);
     if (md?.[1]) {
       const url = md[1].split(' ')[0].trim();
       if (!url.startsWith('http')) {
-        const [owner, repo] = repoUrl.replace('https://github.com/', '').split('/');
-        return `https://raw.githubusercontent.com/${owner}/${repo}/main/${url.replace(/^\.?\//,'')}`;
+        return toRawAssetUrl(owner, repo, defaultBranch, url);
       }
       return url.includes('github.com') && !url.includes('raw.')
         ? url.replace('github.com','raw.githubusercontent.com').replace('/blob/','/')
         : url;
     }
     const html = text.match(/<img[^>]+src=["']([^"']+)["']/i);
-    return html?.[1] ?? null;
+    if (!html?.[1]) return null;
+    const url = html[1].trim();
+    if (!url.startsWith('http')) return toRawAssetUrl(owner, repo, defaultBranch, url);
+    return url;
   } catch { return null; }
 };
+
+async function readGithubError(response: Response): Promise<string> {
+  if ((response.status === 403 || response.status === 429) && response.headers.get('X-RateLimit-Remaining') === '0') {
+    return 'GitHub API rate limit reached.';
+  }
+
+  try {
+    const payload = await response.json();
+    if (typeof payload?.message === 'string') return `GitHub API error: ${payload.message}`;
+  } catch {
+    // Ignore JSON parsing errors and fall back to the status message.
+  }
+
+  return `GitHub API request failed (${response.status}).`;
+}
 
 // ─── GitHub API ───────────────────────────────────────────────────────────────
 async function fetchRepos(): Promise<GithubRepo[]> {
   const r = await fetch(
     `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=${MAX_REPOS}&type=public`,
-    { headers: { Accept: 'application/vnd.github.mercy-preview+json' } }
+    { headers: githubHeaders() }
   );
-  if (!r.ok) throw new Error(`${r.status}`);
+  if (!r.ok) throw new Error(await readGithubError(r));
   return r.json();
 }
-async function fetchReadmeImage(owner: string, repo: string): Promise<string | null> {
-  try {
-    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`,
-      { headers: { Accept: 'application/vnd.github.v3+json' } });
-    if (!r.ok) return null;
-    const d = await r.json();
-    return extractReadmeImage(d.content, `https://github.com/${owner}/${repo}`);
-  } catch { return null; }
+async function fetchReadmeImage(owner: string, repo: string, defaultBranch: string): Promise<string | null> {
+  for (const readmePath of README_FILE_CANDIDATES) {
+    try {
+      const response = await fetch(
+        `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${readmePath}`
+      );
+      if (!response.ok) continue;
+
+      const text = await response.text();
+      const image = extractReadmeImage(text, owner, repo, defaultBranch);
+      if (image) return image;
+    } catch {
+      // Ignore README lookup failures and fall back to the repository preview image.
+    }
+  }
+
+  return repoPreviewImage(owner, repo);
 }
+
+const sortProjectsForDisplay = (projects: Project[]) => [...projects].sort((a, b) => {
+  if (a.featured && !b.featured) return -1;
+  if (!a.featured && b.featured) return 1;
+  return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+});
+
+const buildProjectsFromRepos = (
+  repos: GithubRepo[],
+  readmeImages: Record<number, string | null> = {},
+): Project[] => {
+  const byStar = [...repos].sort((a, b) => b.stargazers_count - a.stargazers_count);
+  const featuredIds = new Set(byStar.slice(0, FEATURED_COUNT).map((repo) => repo.id));
+
+  return sortProjectsForDisplay(
+    repos.map((repo) => ({
+      ...repo,
+      homepage: repo.homepage?.trim() || null,
+      language: repo.language ?? null,
+      topics: repo.topics ?? [],
+      featured: featuredIds.has(repo.id),
+      category: deriveCategory(repo),
+      readmeImage: readmeImages[repo.id] ?? repoPreviewImage(repo.owner.login, repo.name),
+    })),
+  );
+};
+
+const BUNDLED_PROJECTS = buildProjectsFromRepos(projectSnapshot);
 
 // ─── Cache ────────────────────────────────────────────────────────────────────
 const saveCache = (p: Project[]) => {
@@ -915,55 +997,53 @@ export function Projects() {
     if (!force) {
       const cached = loadCache();
       if (cached?.length) {
-        // Sort cached projects by updated date (latest first)
-        const sorted = [...cached].sort((a, b) => 
-          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        );
+        const sorted = sortProjectsForDisplay(cached);
         setProjects(sorted);
         setCategories(buildCategoryFilters(sorted));
         setLoading(false);
         return;
       }
+
+      setProjects(BUNDLED_PROJECTS);
+      setCategories(buildCategoryFilters(BUNDLED_PROJECTS));
+      setLoading(false);
+      return;
     }
     try {
       const repos = await fetchRepos();
-      // repos are already sorted by updated date from API (sort=updated)
-      const byStar = [...repos].sort((a, b) => b.stargazers_count - a.stargazers_count);
-      const featuredIds = new Set(byStar.slice(0, FEATURED_COUNT).map(r => r.id));
-      const enriched: Project[] = [];
+      const readmeImages: Record<number, string | null> = {};
       
       for (let i = 0; i < repos.length; i += 8) {
         const batch = repos.slice(i, i + 8);
-        const results = await Promise.all(batch.map(async (r): Promise<Project> => ({
-          ...r, language: r.language ?? null, topics: r.topics ?? [],
-          featured: featuredIds.has(r.id),
-          category: deriveCategory(r),
-          readmeImage: await fetchReadmeImage(r.owner.login, r.name),
+        const results = await Promise.all(batch.map(async (repo) => ({
+          id: repo.id,
+          image: await fetchReadmeImage(repo.owner.login, repo.name, repo.default_branch),
         })));
-        enriched.push(...results);
+        for (const result of results) readmeImages[result.id] = result.image;
       }
-      
-      // Sort: featured first, then by updated date (latest first)
-      enriched.sort((a, b) => {
-        if (a.featured && !b.featured) return -1;
-        if (!a.featured && b.featured) return 1;
-        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      });
-      
+
+      const enriched = buildProjectsFromRepos(repos, readmeImages);
       setCategories(buildCategoryFilters(enriched));
       setProjects(enriched);
       saveCache(enriched);
       if (force) setToast({ msg: 'Projects refreshed from GitHub!', type: 'success' });
-    } catch {
-      if (force) setToast({ msg: 'Failed to reach GitHub API.', type: 'error' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to reach GitHub API.';
+      const fallbackProjects = BUNDLED_PROJECTS;
+      setProjects(fallbackProjects);
+      setCategories(buildCategoryFilters(fallbackProjects));
+      if (force) {
+        const fallbackMessage = message.includes('rate limit')
+          ? 'GitHub API rate limit reached. Showing bundled project snapshot.'
+          : `${message} Showing bundled project snapshot.`;
+        setToast({ msg: fallbackMessage, type: 'error' });
+      }
       try {
         const raw = localStorage.getItem(CACHE_KEY);
         if (raw) {
           const { data } = JSON.parse(raw);
           if (data?.length) {
-            const sorted = [...data].sort((a, b) => 
-              new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-            );
+            const sorted = sortProjectsForDisplay(data);
             setProjects(sorted);
             setCategories(buildCategoryFilters(sorted));
           }
