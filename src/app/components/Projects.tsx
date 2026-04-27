@@ -218,6 +218,37 @@ const buildProjectsFromRepos = (
 };
 
 const BUNDLED_PROJECTS = buildProjectsFromRepos(projectSnapshot);
+const README_PREVIEW_HOST = 'https://opengraph.githubassets.com/portfolio/';
+
+const shouldHydrateReadmeImage = (project: Project) =>
+  !project.readmeImage || project.readmeImage.startsWith(README_PREVIEW_HOST);
+
+async function hydrateProjectsWithReadmeImages(projects: Project[]): Promise<Project[]> {
+  const hydrated = [...projects];
+
+  for (let i = 0; i < hydrated.length; i += 4) {
+    const batch = hydrated.slice(i, i + 4);
+    const results = await Promise.all(batch.map(async (project) => {
+      if (!shouldHydrateReadmeImage(project)) return project;
+
+      const image = await fetchReadmeImage(
+        project.owner.login,
+        project.name,
+        project.default_branch,
+      );
+
+      return image && image !== project.readmeImage
+        ? { ...project, readmeImage: image }
+        : project;
+    }));
+
+    for (let index = 0; index < results.length; index += 1) {
+      hydrated[i + index] = results[index];
+    }
+  }
+
+  return hydrated;
+}
 
 // ─── Cache ────────────────────────────────────────────────────────────────────
 const saveCache = (p: Project[]) => {
@@ -333,30 +364,66 @@ function MarqueeStrip() {
 }
 
 // ─── README THUMBNAIL ─────────────────────────────────────────────────────────
-function ReadmeThumbnail({ src, color, name }: { src: string | null; color: string; name: string }) {
+function ReadmeThumbnail({
+  src,
+  color,
+  name,
+  eager = false,
+}: {
+  src: string | null;
+  color: string;
+  name: string;
+  eager?: boolean;
+}) {
   const [err, setErr] = useState(false);
-  if (!src || err) {
-    const seed = name.charCodeAt(0) * 7 + name.charCodeAt(name.length - 1) * 13;
-    const shapes = Array.from({ length: 5 }, (_, i) => ({
-      r: 18 + (seed * (i + 3)) % 38,
-      cx: ((seed * (i + 1) * 37) % 200) + 20,
-      cy: ((seed * (i + 2) * 53) % 100) + 10,
-      o: 0.05 + i * 0.025,
-    }));
-    return (
-      <div className="flex h-full w-full items-center justify-center overflow-hidden"
-        style={{ background: `${color}08` }}>
-        <svg width="100%" height="100%" viewBox="0 0 240 120" preserveAspectRatio="xMidYMid slice">
-          {shapes.map((s, i) => <circle key={i} cx={s.cx} cy={s.cy} r={s.r} fill={color} opacity={s.o} />)}
-          <text x="120" y="68" textAnchor="middle" fontSize="10" fill={color} opacity="0.3"
-            fontFamily="monospace">{name.slice(0, 20)}</text>
-        </svg>
-      </div>
-    );
-  }
+  const [loaded, setLoaded] = useState(false);
+  const seed = name.charCodeAt(0) * 7 + name.charCodeAt(name.length - 1) * 13;
+  const shapes = Array.from({ length: 5 }, (_, i) => ({
+    r: 18 + (seed * (i + 3)) % 38,
+    cx: ((seed * (i + 1) * 37) % 200) + 20,
+    cy: ((seed * (i + 2) * 53) % 100) + 10,
+    o: 0.05 + i * 0.025,
+  }));
+  const showImage = Boolean(src) && !err;
+
   return (
-    <img src={src} alt="preview" onError={() => setErr(true)}
-      className="h-full w-full object-cover object-top transition-transform duration-700 group-hover/project-card:scale-110" />
+    <div className="project-card-thumb">
+      <div className="project-card-thumb-fallback" style={{ background: `${color}08` }}>
+        <svg width="100%" height="100%" viewBox="0 0 240 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          {shapes.map((s, i) => <circle key={i} cx={s.cx} cy={s.cy} r={s.r} fill={color} opacity={s.o} />)}
+          <text
+            x="120"
+            y="68"
+            textAnchor="middle"
+            fontSize="10"
+            fill={color}
+            opacity="0.3"
+            fontFamily="monospace"
+          >
+            {name.slice(0, 20)}
+          </text>
+        </svg>
+        <div className="project-card-thumb-shimmer" />
+      </div>
+
+      {showImage ? (
+        <img
+          src={src ?? undefined}
+          alt={`${name} preview`}
+          loading={eager ? 'eager' : 'lazy'}
+          fetchPriority={eager ? 'high' : 'auto'}
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => {
+            setErr(true);
+            setLoaded(false);
+          }}
+          className={`project-card-thumb-image ${
+            loaded ? 'project-card-thumb-image-loaded' : 'project-card-thumb-image-loading'
+          }`}
+        />
+      ) : null}
+    </div>
   );
 }
 
@@ -708,7 +775,12 @@ function GridProjectCard({ project, index, onHover }: {
           aria-expanded={open ? 'true' : 'false'}
         >
           <div className="project-card-media">
-            <ReadmeThumbnail src={project.readmeImage} color={cfg.color} name={project.name} />
+            <ReadmeThumbnail
+              src={project.readmeImage}
+              color={cfg.color}
+              name={project.name}
+              eager={project.featured || index < 2}
+            />
             <div className="project-card-media-overlay" />
             <div className="project-card-noise" />
 
@@ -726,6 +798,15 @@ function GridProjectCard({ project, index, onHover }: {
               {showCategory ? (
                 <span className="project-card-pill project-card-pill-light">{project.category}</span>
               ) : null}
+            </div>
+
+            <div className="project-card-preview">
+              <p className="project-card-preview-kicker">{project.featured ? 'Featured Project' : (project.language ?? 'Project')}</p>
+              <h3 className="project-card-preview-title">{displayName}</h3>
+              <div className="project-card-preview-meta">
+                <span>{updatedLabel}</span>
+                {visibleTopics[0] ? <span>#{visibleTopics[0]}</span> : null}
+              </div>
             </div>
           </div>
 
@@ -977,35 +1058,52 @@ export function Projects() {
   const { ref: inViewRef, inView } = useInView({ threshold: 0.04, triggerOnce: true });
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  const [projects,       setProjects]       = useState<Project[]>([]);
-  const [loading,        setLoading]        = useState(true);
+  const [projects,       setProjects]       = useState<Project[]>(() => BUNDLED_PROJECTS);
+  const [loading,        setLoading]        = useState(false);
   const [activeProject,  setActiveProject]  = useState<Project | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [categories,     setCategories]     = useState<string[]>(['All']);
+  const [categories,     setCategories]     = useState<string[]>(() => buildCategoryFilters(BUNDLED_PROJECTS));
   const [query,          setQuery]          = useState('');
   const [sort,           setSort]           = useState<SortKey>('updated'); // Changed default to 'updated'
   const [page,           setPage]           = useState(1);
   const [toast,          setToast]          = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [showSort,       setShowSort]       = useState(false);
+  const [refreshing,     setRefreshing]     = useState(false);
 
   // ── Parallax — wraps the bg image in its own container so height is always correct
   const { scrollYProgress } = useScroll({ target: sectionRef });
   const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '12%']);
 
   const loadProjects = useCallback(async (force = false) => {
-    setLoading(true);
+    if (force) setRefreshing(true);
     if (!force) {
       const cached = loadCache();
       if (cached?.length) {
         const sorted = sortProjectsForDisplay(cached);
         setProjects(sorted);
         setCategories(buildCategoryFilters(sorted));
+        void hydrateProjectsWithReadmeImages(sorted).then((hydrated) => {
+          const changed = hydrated.some((project, index) => project.readmeImage !== sorted[index]?.readmeImage);
+          if (!changed) return;
+          const ordered = sortProjectsForDisplay(hydrated);
+          setProjects(ordered);
+          setCategories(buildCategoryFilters(ordered));
+          saveCache(ordered);
+        });
         setLoading(false);
         return;
       }
 
       setProjects(BUNDLED_PROJECTS);
       setCategories(buildCategoryFilters(BUNDLED_PROJECTS));
+      void hydrateProjectsWithReadmeImages(BUNDLED_PROJECTS).then((hydrated) => {
+        const changed = hydrated.some((project, index) => project.readmeImage !== BUNDLED_PROJECTS[index]?.readmeImage);
+        if (!changed) return;
+        const ordered = sortProjectsForDisplay(hydrated);
+        setProjects(ordered);
+        setCategories(buildCategoryFilters(ordered));
+        saveCache(ordered);
+      });
       setLoading(false);
       return;
     }
@@ -1032,6 +1130,14 @@ export function Projects() {
       const fallbackProjects = BUNDLED_PROJECTS;
       setProjects(fallbackProjects);
       setCategories(buildCategoryFilters(fallbackProjects));
+      void hydrateProjectsWithReadmeImages(fallbackProjects).then((hydrated) => {
+        const changed = hydrated.some((project, index) => project.readmeImage !== fallbackProjects[index]?.readmeImage);
+        if (!changed) return;
+        const ordered = sortProjectsForDisplay(hydrated);
+        setProjects(ordered);
+        setCategories(buildCategoryFilters(ordered));
+        saveCache(ordered);
+      });
       if (force) {
         const fallbackMessage = message.includes('rate limit')
           ? 'GitHub API rate limit reached. Showing bundled project snapshot.'
@@ -1051,6 +1157,7 @@ export function Projects() {
       } catch { /**/ }
     } finally {
       setLoading(false);
+      if (force) setRefreshing(false);
     }
   }, []);
 
@@ -1263,10 +1370,16 @@ export function Projects() {
             <motion.button onClick={() => loadProjects(true)}
               whileHover={{ scale: 1.06 }} whileTap={{ scale: .94 }}
               title="Refresh from GitHub"
+              disabled={refreshing}
               className="flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all flex-shrink-0"
-              style={{ border: '1px solid rgba(255,255,255,.07)', color: 'rgba(148,163,184,.5)', background: 'rgba(255,255,255,.03)' }}>
-              <RefreshCw className="h-4 w-4" />
-              <span className="hidden sm:inline">Refresh</span>
+              style={{
+                border: '1px solid rgba(255,255,255,.07)',
+                color: 'rgba(148,163,184,.5)',
+                background: 'rgba(255,255,255,.03)',
+                opacity: refreshing ? 0.72 : 1,
+              }}>
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
             </motion.button>
           </div>
         </motion.div>
@@ -1475,6 +1588,52 @@ export function Projects() {
           background: #08111f;
         }
 
+        .project-card-thumb {
+          position: absolute;
+          inset: 0;
+        }
+
+        .project-card-thumb-fallback {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+
+        .project-card-thumb-shimmer {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.12) 45%, transparent 100%);
+          background-size: 220% 100%;
+          animation: projectThumbShimmer 2.4s ease-in-out infinite;
+          opacity: 0.8;
+        }
+
+        .project-card-thumb-image {
+          position: absolute;
+          inset: 0;
+          height: 100%;
+          width: 100%;
+          object-fit: cover;
+          object-position: top;
+          transition: opacity .4s ease, transform .7s ease;
+        }
+
+        .project-card-thumb-image-loading {
+          opacity: 0;
+        }
+
+        .project-card-thumb-image-loaded {
+          opacity: 1;
+        }
+
+        .project-card-shell:hover .project-card-thumb-image,
+        .project-card-shell:focus-within .project-card-thumb-image {
+          transform: scale(1.08);
+        }
+
         .project-card-media-overlay {
           position: absolute;
           inset: 0;
@@ -1499,6 +1658,48 @@ export function Projects() {
           display: flex;
           justify-content: space-between;
           gap: .75rem;
+        }
+
+        .project-card-preview {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          gap: .32rem;
+          padding: 3.2rem 1rem 1rem;
+          background: linear-gradient(180deg, rgba(2,6,23,0) 0%, rgba(2,6,23,.2) 24%, rgba(2,6,23,.78) 72%, rgba(2,6,23,.92) 100%);
+          transition: opacity .3s ease, transform .3s ease;
+        }
+
+        .project-card-preview-kicker {
+          margin: 0;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: .16em;
+          text-transform: uppercase;
+          color: rgba(125,211,252,.74);
+        }
+
+        .project-card-preview-title {
+          margin: 0;
+          font-family: 'Outfit', sans-serif;
+          font-size: 1.05rem;
+          font-weight: 800;
+          line-height: 1.08;
+          color: #f8fafc;
+          text-transform: capitalize;
+        }
+
+        .project-card-preview-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: .55rem;
+          font-size: 11px;
+          font-weight: 600;
+          color: rgba(203,213,225,.72);
         }
 
         .project-card-pill {
@@ -1551,6 +1752,11 @@ export function Projects() {
           transform: translateY(0);
           opacity: 1;
           pointer-events: auto;
+        }
+
+        .project-card-shell.is-open .project-card-preview {
+          opacity: 0;
+          transform: translateY(8px);
         }
 
         .project-card-overlay-header {
@@ -1680,6 +1886,11 @@ export function Projects() {
         @keyframes shimmer {
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
+        }
+
+        @keyframes projectThumbShimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -20% 0; }
         }
 
         /* Input placeholder */
