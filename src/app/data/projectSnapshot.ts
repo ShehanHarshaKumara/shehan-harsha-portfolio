@@ -49,7 +49,7 @@ export const projectSnapshot = [
     name: 'Sri-Lanka-Dedicated-Economic-Center',
     description: null,
     html_url: 'https://github.com/ShehanHarshaKumara/Sri-Lanka-Dedicated-Economic-Center',
-    homepage: null,
+    homepage: 'https://shehanharshakumara.github.io/Sri-Lanka-Dedicated-Economic-Center/',
     stargazers_count: 1,
     forks_count: 1,
     watchers_count: 1,

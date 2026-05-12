@@ -148,6 +148,15 @@ const extractReadmeImage = (
   } catch { return null; }
 };
 
+const KNOWN_LIVE_DEMOS = new Map(
+  projectSnapshot
+    .map((project) => [project.id, project.homepage?.trim()] as const)
+    .filter((entry): entry is readonly [number, string] => Boolean(entry[1]))
+);
+
+const resolveHomepage = (repo: Pick<GithubRepo, 'id' | 'homepage'>) =>
+  repo.homepage?.trim() || KNOWN_LIVE_DEMOS.get(repo.id) || null;
+
 async function readGithubError(response: Response): Promise<string> {
   if ((response.status === 403 || response.status === 429) && response.headers.get('X-RateLimit-Remaining') === '0') {
     return 'GitHub API rate limit reached.';
@@ -207,7 +216,7 @@ const buildProjectsFromRepos = (
   return sortProjectsForDisplay(
     repos.map((repo) => ({
       ...repo,
-      homepage: repo.homepage?.trim() || null,
+      homepage: resolveHomepage(repo),
       language: repo.language ?? null,
       topics: repo.topics ?? [],
       featured: featuredIds.has(repo.id),
@@ -259,7 +268,11 @@ const loadCache = (): Project[] | null => {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const { ts, data } = JSON.parse(raw);
-    return Date.now() - ts > CACHE_TTL_MS ? null : data;
+    if (Date.now() - ts > CACHE_TTL_MS) return null;
+    return data.map((project: Project) => ({
+      ...project,
+      homepage: resolveHomepage(project),
+    }));
   } catch { return null; }
 };
 
