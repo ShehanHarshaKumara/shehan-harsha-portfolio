@@ -193,11 +193,11 @@ async function fetchReadmeImage(owner: string, repo: string, defaultBranch: stri
       const image = extractReadmeImage(text, owner, repo, defaultBranch);
       if (image) return image;
     } catch {
-      // Ignore README lookup failures and fall back to the repository preview image.
+      // Ignore README lookup failures and keep the instant generated card art.
     }
   }
 
-  return repoPreviewImage(owner, repo);
+  return null;
 }
 
 const sortProjectsForDisplay = (projects: Project[]) => [...projects].sort((a, b) => {
@@ -221,13 +221,18 @@ const buildProjectsFromRepos = (
       topics: repo.topics ?? [],
       featured: featuredIds.has(repo.id),
       category: deriveCategory(repo),
-      readmeImage: readmeImages[repo.id] ?? repoPreviewImage(repo.owner.login, repo.name),
+      readmeImage: Object.prototype.hasOwnProperty.call(readmeImages, repo.id)
+        ? readmeImages[repo.id]
+        : null,
     })),
   );
 };
 
 const BUNDLED_PROJECTS = buildProjectsFromRepos(projectSnapshot);
 const README_PREVIEW_HOST = 'https://opengraph.githubassets.com/portfolio/';
+
+const normalizePreviewImage = (image: string | null | undefined) =>
+  image?.startsWith(README_PREVIEW_HOST) ? null : image ?? null;
 
 const shouldHydrateReadmeImage = (project: Project) =>
   !project.readmeImage || project.readmeImage.startsWith(README_PREVIEW_HOST);
@@ -272,6 +277,7 @@ const loadCache = (): Project[] | null => {
     return data.map((project: Project) => ({
       ...project,
       homepage: resolveHomepage(project),
+      readmeImage: normalizePreviewImage(project.readmeImage),
     }));
   } catch { return null; }
 };
@@ -391,17 +397,25 @@ function ReadmeThumbnail({
   const [err, setErr] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const seed = name.charCodeAt(0) * 7 + name.charCodeAt(name.length - 1) * 13;
-  const shapes = Array.from({ length: 5 }, (_, i) => ({
+  const shapes = useMemo(() => Array.from({ length: 5 }, (_, i) => ({
     r: 18 + (seed * (i + 3)) % 38,
     cx: ((seed * (i + 1) * 37) % 200) + 20,
     cy: ((seed * (i + 2) * 53) % 100) + 10,
     o: 0.05 + i * 0.025,
-  }));
+  })), [seed]);
   const showImage = Boolean(src) && !err;
+
+  useEffect(() => {
+    setErr(false);
+    setLoaded(false);
+  }, [src]);
 
   return (
     <div className="project-card-thumb">
-      <div className="project-card-thumb-fallback" style={{ background: `${color}08` }}>
+      <div
+        className="project-card-thumb-fallback"
+        style={{ background: `${color}08` }}
+      >
         <svg width="100%" height="100%" viewBox="0 0 240 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           {shapes.map((s, i) => <circle key={i} cx={s.cx} cy={s.cy} r={s.r} fill={color} opacity={s.o} />)}
           <text
@@ -1095,62 +1109,36 @@ export function Projects() {
         const sorted = sortProjectsForDisplay(cached);
         setProjects(sorted);
         setCategories(buildCategoryFilters(sorted));
-        void hydrateProjectsWithReadmeImages(sorted).then((hydrated) => {
-          const changed = hydrated.some((project, index) => project.readmeImage !== sorted[index]?.readmeImage);
-          if (!changed) return;
-          const ordered = sortProjectsForDisplay(hydrated);
-          setProjects(ordered);
-          setCategories(buildCategoryFilters(ordered));
-          saveCache(ordered);
-        });
         setLoading(false);
         return;
       }
 
       setProjects(BUNDLED_PROJECTS);
       setCategories(buildCategoryFilters(BUNDLED_PROJECTS));
-      void hydrateProjectsWithReadmeImages(BUNDLED_PROJECTS).then((hydrated) => {
-        const changed = hydrated.some((project, index) => project.readmeImage !== BUNDLED_PROJECTS[index]?.readmeImage);
-        if (!changed) return;
-        const ordered = sortProjectsForDisplay(hydrated);
-        setProjects(ordered);
-        setCategories(buildCategoryFilters(ordered));
-        saveCache(ordered);
-      });
       setLoading(false);
       return;
     }
     try {
       const repos = await fetchRepos();
-      const readmeImages: Record<number, string | null> = {};
-      
-      for (let i = 0; i < repos.length; i += 8) {
-        const batch = repos.slice(i, i + 8);
-        const results = await Promise.all(batch.map(async (repo) => ({
-          id: repo.id,
-          image: await fetchReadmeImage(repo.owner.login, repo.name, repo.default_branch),
-        })));
-        for (const result of results) readmeImages[result.id] = result.image;
-      }
-
-      const enriched = buildProjectsFromRepos(repos, readmeImages);
+      const enriched = buildProjectsFromRepos(repos);
       setCategories(buildCategoryFilters(enriched));
       setProjects(enriched);
       saveCache(enriched);
       if (force) setToast({ msg: 'Projects refreshed from GitHub!', type: 'success' });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to reach GitHub API.';
-      const fallbackProjects = BUNDLED_PROJECTS;
-      setProjects(fallbackProjects);
-      setCategories(buildCategoryFilters(fallbackProjects));
-      void hydrateProjectsWithReadmeImages(fallbackProjects).then((hydrated) => {
-        const changed = hydrated.some((project, index) => project.readmeImage !== fallbackProjects[index]?.readmeImage);
+
+      void hydrateProjectsWithReadmeImages(enriched).then((hydrated) => {
+        const changed = hydrated.some((project, index) => project.readmeImage !== enriched[index]?.readmeImage);
         if (!changed) return;
         const ordered = sortProjectsForDisplay(hydrated);
         setProjects(ordered);
         setCategories(buildCategoryFilters(ordered));
         saveCache(ordered);
       });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to reach GitHub API.';
+      const fallbackProjects = BUNDLED_PROJECTS;
+      setProjects(fallbackProjects);
+      setCategories(buildCategoryFilters(fallbackProjects));
       if (force) {
         const fallbackMessage = message.includes('rate limit')
           ? 'GitHub API rate limit reached. Showing bundled project snapshot.'
@@ -1162,7 +1150,11 @@ export function Projects() {
         if (raw) {
           const { data } = JSON.parse(raw);
           if (data?.length) {
-            const sorted = sortProjectsForDisplay(data);
+            const sorted = sortProjectsForDisplay(data.map((project: Project) => ({
+              ...project,
+              homepage: resolveHomepage(project),
+              readmeImage: normalizePreviewImage(project.readmeImage),
+            })));
             setProjects(sorted);
             setCategories(buildCategoryFilters(sorted));
           }
@@ -1621,7 +1613,8 @@ export function Projects() {
           background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.12) 45%, transparent 100%);
           background-size: 220% 100%;
           animation: projectThumbShimmer 2.4s ease-in-out infinite;
-          opacity: 0.8;
+          opacity: 0;
+          transition: opacity .2s ease;
         }
 
         .project-card-thumb-image {
