@@ -148,14 +148,40 @@ const extractReadmeImage = (
   } catch { return null; }
 };
 
+const normalizeProjectName = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
 const KNOWN_LIVE_DEMOS = new Map(
   projectSnapshot
     .map((project) => [project.id, project.homepage?.trim()] as const)
     .filter((entry): entry is readonly [number, string] => Boolean(entry[1]))
 );
 
-const resolveHomepage = (repo: Pick<GithubRepo, 'id' | 'homepage'>) =>
-  repo.homepage?.trim() || KNOWN_LIVE_DEMOS.get(repo.id) || null;
+const KNOWN_LIVE_DEMOS_BY_NAME = new Map(
+  projectSnapshot
+    .map((project) => [normalizeProjectName(project.name), project.homepage?.trim()] as const)
+    .filter((entry): entry is readonly [string, string] => Boolean(entry[1]))
+);
+
+KNOWN_LIVE_DEMOS_BY_NAME.set(
+  normalizeProjectName('Doctor Appointment System for Clinic'),
+  'https://clinic-appointment-system-silk.vercel.app'
+);
+
+KNOWN_LIVE_DEMOS_BY_NAME.set(
+  normalizeProjectName('Doctor-Appointment-System-for-Clinic'),
+  'https://clinic-appointment-system-silk.vercel.app'
+);
+
+const resolveHomepage = (repo: Pick<GithubRepo, 'id' | 'name' | 'homepage'>) =>
+  repo.homepage?.trim() ||
+  KNOWN_LIVE_DEMOS.get(repo.id) ||
+  KNOWN_LIVE_DEMOS_BY_NAME.get(normalizeProjectName(repo.name)) ||
+  null;
 
 async function readGithubError(response: Response): Promise<string> {
   if ((response.status === 403 || response.status === 429) && response.headers.get('X-RateLimit-Remaining') === '0') {
@@ -200,11 +226,9 @@ async function fetchReadmeImage(owner: string, repo: string, defaultBranch: stri
   return null;
 }
 
-const sortProjectsForDisplay = (projects: Project[]) => [...projects].sort((a, b) => {
-  if (a.featured && !b.featured) return -1;
-  if (!a.featured && b.featured) return 1;
-  return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-});
+const sortProjectsForDisplay = (projects: Project[]) => [...projects].sort(
+  (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+);
 
 const buildProjectsFromRepos = (
   repos: GithubRepo[],
@@ -1116,7 +1140,6 @@ export function Projects() {
       setProjects(BUNDLED_PROJECTS);
       setCategories(buildCategoryFilters(BUNDLED_PROJECTS));
       setLoading(false);
-      return;
     }
     try {
       const repos = await fetchRepos();
@@ -1178,9 +1201,11 @@ export function Projects() {
         p.topics.some(t => t.includes(q))
       );
     }
-    
-    // Apply sorting based on user selection
-    const sorted = [...list].sort((a, b) => {
+    return list;
+  }, [projects, activeCategory, query]);
+
+  const sortedFiltered = useMemo(() => {
+    const sorted = [...filtered].sort((a, b) => {
       if (sort === 'stars')   return b.stargazers_count - a.stargazers_count;
       if (sort === 'forks')   return b.forks_count - a.forks_count;
       if (sort === 'updated') return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
@@ -1189,11 +1214,17 @@ export function Projects() {
     });
     
     return sorted;
-  }, [projects, activeCategory, query, sort]);
+  }, [filtered, sort]);
 
-  // Separate latest projects (first 4 after filtering) and remaining projects
-  const latestProjects = filtered.slice(0, FEATURED_COUNT);
-  const otherProjects = filtered.slice(FEATURED_COUNT);
+  const latestProjects = useMemo(
+    () => sortProjectsForDisplay(filtered).slice(0, FEATURED_COUNT),
+    [filtered]
+  );
+  const latestProjectIds = useMemo(
+    () => new Set(latestProjects.map(project => project.id)),
+    [latestProjects]
+  );
+  const otherProjects = sortedFiltered.filter(project => !latestProjectIds.has(project.id));
   
   // Handle pagination for other projects only (latest projects always show full)
   const paginatedOther = otherProjects.slice(0, page * PAGE_SIZE);
