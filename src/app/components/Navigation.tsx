@@ -2,7 +2,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { useState, useEffect, useRef } from 'react';
 import { 
   Menu, X, Sun, Moon, Home, User, Code2, 
-  Wrench, Mail, GraduationCap, ChevronRight,
+  Wrench, Mail, GraduationCap, ChevronRight, ContactRound,
   Sparkles, Github, Linkedin, Twitter,
   Download, LogOut, Settings, HelpCircle
 } from 'lucide-react';
@@ -20,8 +20,9 @@ const navItems: NavItem[] = [
   { name: 'Home', href: '#home', icon: Home, gradient: 'from-blue-400 to-cyan-400' },
   { name: 'About', href: '#about', icon: User, gradient: 'from-purple-400 to-pink-400' },
   { name: 'Projects', href: '#projects', icon: Code2, gradient: 'from-green-400 to-emerald-400' },
-  { name: 'Skills', href: '#skills', icon: Wrench, gradient: 'from-orange-400 to-red-400' },
   { name: 'Education', href: '#education', icon: GraduationCap, gradient: 'from-indigo-400 to-purple-400' },
+  { name: 'Skills', href: '#skills', icon: Wrench, gradient: 'from-orange-400 to-red-400' },
+  { name: 'References', href: '#references', icon: ContactRound, gradient: 'from-cyan-400 to-blue-400' },
   { name: 'Contact', href: '#contact', icon: Mail, gradient: 'from-pink-400 to-rose-400' },
 ];
 
@@ -142,7 +143,7 @@ export function Navigation() {
                     onClick={() => scrollToSection(item.href)}
                     onHoverStart={() => setHoveredItem(item.name)}
                     onHoverEnd={() => setHoveredItem(null)}
-                    className="relative px-3 py-2 rounded-xl transition-all group"
+                    className="relative px-2.5 py-2 rounded-xl transition-all group"
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.95 }}
                   >

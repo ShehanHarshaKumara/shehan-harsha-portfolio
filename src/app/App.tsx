@@ -8,6 +8,7 @@ import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
 import Education from './components/Education';
+import { References } from './components/References';
 
 /* The Education component import is removed because 'c:/my project/New folder/src/app/components/Education.tsx' is not a module. */
 
@@ -22,6 +23,7 @@ export default function App() {
           <Projects />
           <Education />
           <Skills />
+          <References />
           <Contact />
         </main>
         <Footer />

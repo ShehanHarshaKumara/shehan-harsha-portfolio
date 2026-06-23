@@ -42,7 +42,9 @@ export function Footer() {
     { name: 'Home', id: 'home' },
     { name: 'About', id: 'about' },
     { name: 'Projects', id: 'projects' },
+    { name: 'Education', id: 'education' },
     { name: 'Skills', id: 'skills' },
+    { name: 'References', id: 'references' },
     { name: 'Contact', id: 'contact' },
   ];
 
