@@ -41,6 +41,7 @@ export function Navigation() {
   const [showProfile, setShowProfile] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const navRef = useRef<HTMLDivElement>(null);
+  const scrollTimerRef = useRef<number | null>(null);
   
   // Scroll animations
   const { scrollY } = useScroll();
@@ -67,22 +68,35 @@ export function Navigation() {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimerRef.current !== null) window.clearTimeout(scrollTimerRef.current);
+    };
   }, []);
 
   const scrollToSection = (href: string) => {
-    const element = document.querySelector(href);
-    if (element) {
-      const offset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
+    const wasMobileMenuOpen = isOpen;
+    setIsOpen(false);
+    setShowProfile(false);
+
+    if (scrollTimerRef.current !== null) window.clearTimeout(scrollTimerRef.current);
+
+    scrollTimerRef.current = window.setTimeout(() => {
+      const sectionId = href.replace('#', '');
+      const element = document.getElementById(sectionId);
+      if (!element) return;
+
+      const navigationHeight = navRef.current?.getBoundingClientRect().height ?? 64;
+      const targetPosition = element.getBoundingClientRect().top + window.scrollY - navigationHeight - 8;
 
       window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
+        top: Math.max(0, targetPosition),
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
       });
-    }
-    setIsOpen(false);
+      window.history.replaceState(null, '', href);
+      setActiveSection(sectionId);
+      scrollTimerRef.current = null;
+    }, wasMobileMenuOpen ? 350 : 0);
   };
 
   return (
@@ -323,6 +337,9 @@ export function Navigation() {
 
               <motion.button
                 onClick={() => setIsOpen(!isOpen)}
+                type="button"
+                aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={isOpen}
                 whileTap={{ scale: 0.9 }}
                 className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
@@ -371,13 +388,18 @@ export function Navigation() {
                   const Icon = item.icon;
 
                   return (
-                    <motion.button
+                    <motion.a
                       key={item.name}
+                      href={item.href}
+                      data-mobile-nav-target={item.href}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ delay: index * 0.05 }}
-                      onClick={() => scrollToSection(item.href)}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        scrollToSection(item.href);
+                      }}
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                         isActive
                           ? `bg-gradient-to-r ${item.gradient} bg-opacity-10 text-blue-400 border border-blue-500/30`
@@ -391,7 +413,7 @@ export function Navigation() {
                       <ChevronRight className={`w-4 h-4 transition-transform ${
                         isActive ? 'translate-x-1' : ''
                       }`} />
-                    </motion.button>
+                    </motion.a>
                   );
                 })}
 
