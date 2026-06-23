@@ -3,6 +3,7 @@ import {
   Code2, Rocket, Brain, Award, Users, Coffee, Sparkles, Cpu,
   Globe, Palette, Server, Cloud, Github, BookOpen, Target,
   Trophy, Compass, ArrowUpRight, Zap, Shield, Layers,
+  BriefcaseBusiness,
 } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
 import { RESUME_URL } from '../constants/links';
@@ -51,11 +52,10 @@ const legacyJourney = [
 ];
 
 const journey = [
-  { year:'Sep 2025',  title:'Joined CodeXpress',    desc:'Started at CodeXpress IT Solutions as a Web Developer Intern in a 60-hour-per-week industrial training program.', icon:Rocket, color:'#38bdf8' },
-  { year:'Nov 2025',  title:'Completed Internship', desc:'Finished the 3-month internship with 650+ hours across Laravel development, APIs, databases, and deployment.',         icon:Target, color:'#c084fc' },
-  { year:'Late 2025', title:'Promoted Full Time',   desc:'Moved into a permanent Full Stack Developer role based on performance, dedication, and technical capability.',           icon:Award,  color:'#fbbf24' },
-  { year:'2025-2026', title:'Delivered 5 Systems',  desc:'Contributed to Education Management, Hanguk Lanka Travel, Dream X Seller, Online Food Delivery, and ERP platforms.',    icon:Trophy, color:'#34d399' },
-  { year:'2026',      title:'Professional Growth',  desc:'Strengthened problem-solving, documentation, teamwork, client communication, and multi-project ownership.',                icon:Brain,  color:'#f472b6' },
+  { year:'2022',      title:'Hardware Technician',  desc:'Diagnosed computer issues, installed and maintained CCTV systems, and delivered customer-facing technical support at Sarasi Computer House.', icon:Cpu, color:'#34d399' },
+  { year:'Sep 2025',  title:'Joined CodeXpress',     desc:'Started as a Web Developer Intern, contributing to PHP/Laravel backends, frontend integration, APIs, and databases.', icon:Rocket, color:'#38bdf8' },
+  { year:'Dec 2025',  title:'Promoted Full Time',    desc:'Earned a permanent Full-Stack Developer position after a successful three-month internship and strong technical performance.', icon:Award, color:'#fbbf24' },
+  { year:'2025–2026', title:'Production Engineering', desc:'Built secure Laravel systems, optimized MySQL databases, integrated payments, and managed VPS deployments with Nginx and SSL.', icon:Trophy, color:'#c084fc' },
 ];
 
 const legacyAchievements = [
@@ -66,10 +66,10 @@ const legacyAchievements = [
 ];
 
 const achievements = [
-  { icon:Award,  title:'Permanent Appointment',   desc:'Progressed from Web Developer Intern to permanent Full Stack Developer at CodeXpress IT Solutions.', grad:'135deg,#fbbf24,#f59e0b' },
-  { icon:Layers, title:'5 Major Systems',         desc:'Worked across education, travel, seller management, food delivery, and ERP domains.',                grad:'135deg,#94a3b8,#64748b' },
-  { icon:Shield, title:'Secure Delivery',         desc:'Implemented authentication, RBAC, payment integration, and production deployment workflows.',        grad:'135deg,#38bdf8,#06b6d4' },
-  { icon:Users,  title:'Professional Discipline', desc:'Handled 60-hour weeks, deadlines, documentation, and collaborative delivery with consistency.',      grad:'135deg,#34d399,#10b981' },
+  { icon:Award,  title:'Earned Promotion',       desc:'Progressed from Web Developer Intern to permanent Full-Stack Developer at CodeXpress IT Solutions.', grad:'135deg,#fbbf24,#f59e0b' },
+  { icon:Layers, title:'Full-Stack Delivery',    desc:'Worked across Laravel, React, Node.js, MySQL, mobile applications, and real-time systems.', grad:'135deg,#94a3b8,#64748b' },
+  { icon:Shield, title:'Secure Production Work', desc:'Implemented authentication, RBAC, payment integration, and VPS deployment workflows.', grad:'135deg,#38bdf8,#06b6d4' },
+  { icon:Users,  title:'Practical IT Foundation', desc:'Combined software engineering with earlier hardware, CCTV, diagnostics, and customer-support experience.', grad:'135deg,#34d399,#10b981' },
 ];
 
 const legacyStats = [
@@ -80,10 +80,10 @@ const legacyStats = [
 ];
 
 const stats = [
-  { icon:BookOpen, label:'Training Hours', value:'650+', note:'Hands-on build',       grad:'135deg,#38bdf8,#6366f1' },
-  { icon:Code2,    label:'Major Systems',  value:'5',    note:'Real projects',        grad:'135deg,#c084fc,#ec4899' },
-  { icon:Target,   label:'Work Week',      value:'60',   note:'Hours per week',       grad:'135deg,#34d399,#10b981' },
-  { icon:Award,    label:'Tenure',         value:'7',    note:'Months at CodeXpress', grad:'135deg,#fb923c,#ef4444' },
+  { icon:BriefcaseBusiness, label:'Professional Roles', value:'3', note:'Career positions', grad:'135deg,#38bdf8,#6366f1' },
+  { icon:Code2,    label:'Featured Projects', value:'4', note:'CV case studies', grad:'135deg,#c084fc,#ec4899' },
+  { icon:Users,    label:'Employers', value:'2', note:'Professional teams', grad:'135deg,#34d399,#10b981' },
+  { icon:Award,    label:'Career Start', value:'2022', note:'Hands-on IT', grad:'135deg,#fb923c,#ef4444' },
 ];
 
 const legacySkills = [
@@ -259,7 +259,7 @@ export function About() {
             className="mb-8 inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.18em]"
             style={{ background:'rgba(56,189,248,.07)', border:'1px solid rgba(56,189,248,.22)', color:'#7dd3fc' }}>
             <Sparkles className="h-3.5 w-3.5" />
-            CodeXpress Experience
+            Professional Profile
           </motion.div>
 
           <h2 className="mb-7 text-[clamp(3rem,10vw,6.5rem)] font-black leading-[.9] tracking-tight">
@@ -283,7 +283,7 @@ export function About() {
             style={{ color:'rgba(148,163,184,.85)' }}
             initial={{ opacity:0 }} animate={heroInView ? { opacity:1 } : {}}
             transition={{ delay:.45 }}>
-            Software Engineering undergraduate from Sri Lanka with hands-on experience at CodeXpress IT Solutions, building Laravel systems, REST APIs, secure access control, and production-ready deployments.
+            Results-driven Full-Stack Developer experienced in building scalable web and mobile applications, secure REST APIs, optimized databases, and production deployments.
           </motion.p>
 
           <motion.div
@@ -291,9 +291,9 @@ export function About() {
             initial={{ opacity:0, y:12 }} animate={heroInView ? { opacity:1, y:0 } : {}}
             transition={{ delay:.55 }}>
             {[
-              { icon:Zap,    label:'650+ Training Hours' },
-              { icon:Shield, label:'RBAC & Secure APIs'  },
-              { icon:Layers, label:'Laravel to Deployment' },
+              { icon:Zap,    label:'Web & Mobile Applications' },
+              { icon:Shield, label:'Secure APIs & RBAC' },
+              { icon:Layers, label:'Development to Deployment' },
             ].map(({ icon: Icon, label }) => (
               <span key={label}
                 className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium"
@@ -404,7 +404,7 @@ export function About() {
                 Software Engineering Undergraduate · NIBM Campus
               </p>
               <p className="mt-2 text-sm font-medium" style={{ color:'#7dd3fc' }}>
-                Web Developer Intern to Full Stack Developer - CodeXpress IT Solutions
+                Full-Stack Developer · Software Engineer
               </p>
             </div>
 
@@ -421,13 +421,13 @@ export function About() {
 
             <div className="space-y-4 text-[15px] leading-[1.75]" style={{ color:'rgba(148,163,184,.85)' }}>
               <p>
-                I started at CodeXpress IT Solutions as a Web Developer Intern on September 1, 2025, working in an intensive 60-hour-per-week industrial training environment built around real business systems.
+                I am a results-driven Full-Stack Developer with hands-on experience building scalable web and mobile applications using Laravel, React, Node.js, and MySQL.
               </p>
               <p>
-                After completing 650+ hours and a 3-month internship, I was appointed as a permanent <span className="font-semibold text-purple-400">Full Stack Developer</span> based on performance, dedication, and technical capability.
+                After completing a three-month Web Developer internship at CodeXpress IT Solutions, I was promoted to a permanent <span className="font-semibold text-purple-400">Full-Stack Developer</span> based on strong technical performance.
               </p>
               <p>
-                My hands-on work spans <span className="font-semibold text-sky-400">Laravel applications</span>, RESTful APIs, MySQL optimization, authentication and RBAC systems, payment gateway integration, and Nginx/VPS/SSL deployment across education, travel, seller management, food delivery, and ERP platforms.
+                My work spans <span className="font-semibold text-sky-400">Laravel applications</span>, RESTful APIs, MySQL optimization, authentication and RBAC, payment gateways, and Nginx/VPS/SSL deployment. My earlier hardware and CCTV experience gives me a practical, end-to-end approach to technology.
               </p>
             </div>
 

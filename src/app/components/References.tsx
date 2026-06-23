@@ -73,6 +73,44 @@ const references: Reference[] = [
   },
 ];
 
+function SleepingCat() {
+  return (
+    <div className="ref-cat-loader" aria-hidden="true">
+      <div className="ref-cat-wrapper">
+        <div className="ref-cat-container">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 733 673" className="ref-cat-body">
+            <path fill="#cbd5e1" d="M111.002 139.5C270.502 -24.5001 471.503 2.4997 621.002 139.5C770.501 276.5 768.504 627.5 621.002 649.5C473.5 671.5 246 687.5 111.002 649.5C-23.9964 611.5 -48.4982 303.5 111.002 139.5Z" />
+            <path fill="#cbd5e1" d="M184 9L270.603 159H97.3975L184 9Z" />
+            <path fill="#cbd5e1" d="M541 0L627.603 150H454.397L541 0Z" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 158 564" className="ref-cat-tail">
+            <path fill="#94a3b8" d="M5.97602 76.066C-11.1099 41.6747 12.9018 0 51.3036 0V0C71.5336 0 89.8636 12.2558 97.2565 31.0866C173.697 225.792 180.478 345.852 97.0691 536.666C89.7636 553.378 73.0672 564 54.8273 564V564C16.9427 564 -5.4224 521.149 13.0712 488.085C90.2225 350.15 87.9612 241.089 5.97602 76.066Z" />
+          </svg>
+          <div className="ref-cat-text"><span className="ref-cat-big-z">Z</span><span className="ref-cat-z">Z</span></div>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 500 126" className="ref-cat-wall">
+          <line strokeWidth={6} stroke="#475569" y2={3} x2={450} y1={3} x1={50} />
+          <line strokeWidth={6} stroke="#475569" y2={85} x2={400} y1={85} x1={100} />
+          <line strokeWidth={6} stroke="#475569" y2={122} x2={375} y1={122} x1={125} />
+          <line strokeWidth={6} stroke="#475569" y2={43} x2={500} y1={43} x1={0} />
+          <line strokeWidth={6} stroke="#475569" y2="1.99391" x2="115.5" y1="43.0061" x1="115.5" />
+          <line strokeWidth={6} stroke="#475569" y2="2.00002" x2={189} y1="43.0122" x1={189} />
+          <line strokeWidth={6} stroke="#475569" y2="2.00612" x2="262.5" y1="43.0183" x1="262.5" />
+          <line strokeWidth={6} stroke="#475569" y2="2.01222" x2={336} y1="43.0244" x1={336} />
+          <line strokeWidth={6} stroke="#475569" y2="2.01833" x2="409.5" y1="43.0305" x1="409.5" />
+          <line strokeWidth={6} stroke="#475569" y2={43} x2={153} y1="84.0122" x1={153} />
+          <line strokeWidth={6} stroke="#475569" y2={43} x2={228} y1="84.0122" x1={228} />
+          <line strokeWidth={6} stroke="#475569" y2={43} x2={303} y1="84.0122" x1={303} />
+          <line strokeWidth={6} stroke="#475569" y2={43} x2={378} y1="84.0122" x1={378} />
+          <line strokeWidth={6} stroke="#475569" y2={84} x2={192} y1="125.012" x1={192} />
+          <line strokeWidth={6} stroke="#475569" y2={84} x2={267} y1="125.012" x1={267} />
+          <line strokeWidth={6} stroke="#475569" y2={84} x2={342} y1="125.012" x1={342} />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export function References() {
   const [selected, setSelected] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -124,9 +162,12 @@ export function References() {
               References<span className="text-cyan-400">.</span>
             </h2>
           </div>
-          <p className="max-w-md text-sm leading-7 text-slate-400">
-            Select a contact to view their professional information and reach them directly.
-          </p>
+          <div className="flex flex-col items-center gap-3 sm:flex-row lg:items-end">
+            <SleepingCat />
+            <p className="max-w-xs text-sm leading-7 text-slate-400">
+              Select a contact to view their professional information and reach them directly.
+            </p>
+          </div>
         </motion.div>
 
         <div
@@ -307,6 +348,22 @@ export function References() {
           ))}
         </div>
       </div>
+
+      <style>{`
+        .ref-cat-loader { width: 13rem; display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 18px 30px rgba(34,211,238,.1)); }
+        .ref-cat-wrapper { width:fit-content; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        .ref-cat-container { width:100%; display:flex; align-items:center; justify-content:center; position:relative; }
+        .ref-cat-body { width:58px; filter:drop-shadow(0 0 10px rgba(148,163,184,.2)); }
+        .ref-cat-tail { position:absolute; width:13px; top:50%; transform-origin:top; animation:refCatTail .5s ease-in infinite alternate-reverse; }
+        .ref-cat-wall { width:210px; }
+        .ref-cat-text { display:flex; flex-direction:column; width:40px; position:absolute; margin:0 0 76px 90px; }
+        .ref-cat-z { color:#67e8f9; font-weight:800; font-size:12px; animation:refCatSleep 2s linear infinite; }
+        .ref-cat-big-z { color:#67e8f9; font-weight:800; font-size:20px; margin-left:8px; animation:refCatSleep 2.3s linear infinite; }
+        @keyframes refCatTail { 0% { transform:rotateZ(60deg); } 50% { transform:rotateZ(0); } 100% { transform:rotateZ(-20deg); } }
+        @keyframes refCatSleep { 0%,100% { opacity:0; transform:translateY(3px); } 50% { opacity:1; transform:translateY(-2px); } }
+        @media (max-width:640px) { .ref-cat-loader { width:11rem; transform:scale(.9); } .ref-cat-wall { width:180px; } }
+        @media (prefers-reduced-motion:reduce) { .ref-cat-tail,.ref-cat-z,.ref-cat-big-z { animation:none !important; } }
+      `}</style>
     </section>
   );
 }

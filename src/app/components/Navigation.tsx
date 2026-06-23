@@ -2,7 +2,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { useState, useEffect, useRef } from 'react';
 import { 
   Menu, X, Sun, Moon, Home, User, Code2, 
-  Wrench, Mail, GraduationCap, ChevronRight, ContactRound,
+  Wrench, Mail, GraduationCap, ChevronRight, ContactRound, BriefcaseBusiness,
   Sparkles, Github, Linkedin, Twitter,
   Download, LogOut, Settings, HelpCircle
 } from 'lucide-react';
@@ -19,6 +19,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: 'Home', href: '#home', icon: Home, gradient: 'from-blue-400 to-cyan-400' },
   { name: 'About', href: '#about', icon: User, gradient: 'from-purple-400 to-pink-400' },
+  { name: 'Experience', href: '#experience', icon: BriefcaseBusiness, gradient: 'from-cyan-400 to-indigo-400' },
   { name: 'Projects', href: '#projects', icon: Code2, gradient: 'from-green-400 to-emerald-400' },
   { name: 'Education', href: '#education', icon: GraduationCap, gradient: 'from-indigo-400 to-purple-400' },
   { name: 'Skills', href: '#skills', icon: Wrench, gradient: 'from-orange-400 to-red-400' },
