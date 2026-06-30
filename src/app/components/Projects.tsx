@@ -253,6 +253,15 @@ const buildProjectsFromRepos = (
 };
 
 const BUNDLED_PROJECTS = buildProjectsFromRepos(projectSnapshot);
+const mergeWithBundledProjects = (projects: Project[]) => {
+  const liveProjectIds = new Set(projects.map((project) => project.id));
+  const liveProjectNames = new Set(projects.map((project) => normalizeProjectName(project.name)));
+  const bundledOnly = BUNDLED_PROJECTS.filter(
+    (project) => !liveProjectIds.has(project.id) && !liveProjectNames.has(normalizeProjectName(project.name))
+  );
+
+  return sortProjectsForDisplay([...projects, ...bundledOnly]);
+};
 const README_PREVIEW_HOST = 'https://opengraph.githubassets.com/portfolio/';
 
 const normalizePreviewImage = (image: string | null | undefined) =>
@@ -1130,7 +1139,7 @@ export function Projects() {
     if (!force) {
       const cached = loadCache();
       if (cached?.length) {
-        const sorted = sortProjectsForDisplay(cached);
+        const sorted = mergeWithBundledProjects(cached);
         setProjects(sorted);
         setCategories(buildCategoryFilters(sorted));
         setLoading(false);
@@ -1143,7 +1152,7 @@ export function Projects() {
     }
     try {
       const repos = await fetchRepos();
-      const enriched = buildProjectsFromRepos(repos);
+      const enriched = mergeWithBundledProjects(buildProjectsFromRepos(repos));
       setCategories(buildCategoryFilters(enriched));
       setProjects(enriched);
       saveCache(enriched);

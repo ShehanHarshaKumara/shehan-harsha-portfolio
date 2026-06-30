@@ -370,12 +370,12 @@ export function Experience() {
       <style>{`
         .exp-robot-shell {
           position: relative;
-          width: 15rem;
+          width: min(15rem, calc(100vw - 2rem));
           filter: drop-shadow(0 24px 45px rgba(34, 211, 238, .12));
         }
         .exp-model-viewport {
           perspective: 1000px;
-          width: 15rem;
+          width: 100%;
           aspect-ratio: 1;
           border-radius: 50%;
           display: flex;
@@ -515,7 +515,16 @@ export function Experience() {
         @keyframes expPulse { 0%,100% { opacity:.4; transform:scale(.8); } 50% { opacity:1; transform:scale(1.2); } }
         @media (max-width: 1023px) {
           .exp-robot-shell { width: 12rem; }
-          .exp-model-viewport { width: 12rem; transform: scale(.8); transform-origin: center; margin: -1.5rem; }
+        }
+        @media (max-width: 639px) {
+          .exp-robot-shell { width: min(12rem, calc(100vw - 3rem)); }
+          .exp-robot-status {
+            bottom: .45rem;
+            gap: .35rem;
+            padding: .3rem .55rem;
+            font-size: .48rem;
+            letter-spacing: .1em;
+          }
         }
         @media (prefers-reduced-motion: reduce) {
           .exp-eva, .exp-eye-chamber, .exp-hand, .exp-scanner-beam, .exp-scanner-origin, .exp-status-dot { animation: none !important; }

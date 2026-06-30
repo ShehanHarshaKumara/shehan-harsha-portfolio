@@ -1,5 +1,20 @@
 export const projectSnapshot = [
   {
+    id: 1300000001,
+    name: 'Modern-Furniture-Website',
+    description: 'A modern furniture website for FurniHub with a clean product showcase, polished shopping experience, and responsive Vercel deployment.',
+    html_url: 'https://github.com/ShehanHarshaKumara',
+    homepage: 'https://furnihub-azure.vercel.app',
+    stargazers_count: 0,
+    forks_count: 0,
+    watchers_count: 0,
+    language: 'TypeScript',
+    topics: ['furniture', 'ecommerce', 'react', 'vercel'],
+    updated_at: '2026-07-01T00:00:00Z',
+    owner: { login: 'ShehanHarshaKumara' },
+    default_branch: 'main',
+  },
+  {
     id: 1221085265,
     name: 'Smart-Pet-Feeder-',
     description: "The Smart Pet Feeder functions as a modern solution because it helps resolve pet owners' issues regarding proper feeding during periods when owners cannot be present. Through IoT-enabled automation this system delivers precise feeding schedules for pets including food and liquid distributions regardless of owner absence.",
