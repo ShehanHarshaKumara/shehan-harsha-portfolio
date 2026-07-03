@@ -1,5 +1,20 @@
 export const projectSnapshot = [
   {
+    id: 1287959299,
+    name: 'FishHub',
+    description: null,
+    html_url: 'https://github.com/ShehanHarshaKumara/FishHub',
+    homepage: 'https://fishhub-xi.vercel.app',
+    stargazers_count: 0,
+    forks_count: 0,
+    watchers_count: 0,
+    language: 'TypeScript',
+    topics: [],
+    updated_at: '2026-07-03T13:49:17Z',
+    owner: { login: 'ShehanHarshaKumara' },
+    default_branch: 'Home',
+  },
+  {
     id: 1300000001,
     name: 'Modern-Furniture-Website',
     description: 'A modern furniture website for FurniHub with a clean product showcase, polished shopping experience, and responsive Vercel deployment.',
